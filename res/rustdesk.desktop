@@ -1,5 +1,5 @@
 [Desktop Entry]
-Name=RustDesk
+Name=Corevia Desk
 GenericName=Remote Desktop
 Comment=Remote Desktop
 Exec=rustdesk %u
@@ -10,7 +10,7 @@ StartupNotify=true
 Categories=Network;RemoteAccess;GTK;
 Keywords=internet;linux;dart;rust;remote-control;p2p;teamviewer;rust-lang;rdp;remote-desktop;vnc;
 Actions=new-window;
-StartupWMClass=rustdesk
+StartupWMClass=com.corevia.desk
 
 X-Desktop-File-Install-Version=0.23
 

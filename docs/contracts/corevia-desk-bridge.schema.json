@@ -1,0 +1,138 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://corevia.local/contracts/corevia-desk-bridge.schema.json",
+  "title": "Corevia Desk local bridge contract",
+  "description": "Bounded request and response envelopes between the Nuxt view and the Rust core.",
+  "type": "object",
+  "definitions": {
+    "request": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestId", "operation"],
+      "properties": {
+        "requestId": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[^\\s\\p{Cc}]+$"
+        },
+        "operation": {
+          "type": "string",
+          "enum": [
+            "get-status",
+            "read-screen-capture-status",
+            "request-screen-capture-access",
+            "read-settings",
+            "read-identity",
+            "read-temporary-password",
+            "read-devices",
+            "read-sessions",
+            "read-session-frame",
+            "read-terminal",
+            "read-file-transfer",
+            "read-transfer-chunk",
+            "cleanup-file-transfer",
+            "write-customer-setting",
+            "write-global-setting",
+            "start-connection",
+            "approve-connection",
+            "close-session",
+            "change-connection-permission",
+            "input-control",
+            "send-mouse",
+            "send-key",
+            "switch-display",
+            "refresh-video",
+            "set-session-quality",
+            "set-session-scroll",
+            "use-camera",
+            "use-file-transfer",
+            "read-remote-folder",
+            "send-file-to-remote",
+            "download-remote-file",
+            "use-terminal",
+            "close-terminal",
+            "send-terminal-input",
+            "use-port-forward",
+            "use-printer",
+            "record-session",
+            "restart-remote-device",
+            "elevate-session",
+            "toggle-privacy-mode",
+            "manage-service",
+            "manage-peers",
+            "send-chat",
+            "use-voice-call",
+            "system-command"
+          ]
+        },
+        "payload": {
+          "type": "object",
+          "additionalProperties": true
+        },
+        "approvalReference": {
+          "type": "string",
+          "minLength": 1,
+          "maxLength": 128,
+          "pattern": "^[^\\s\\p{Cc}]+$"
+        }
+      }
+    },
+    "session": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["sessionId", "remoteId", "state"],
+      "properties": {
+        "sessionId": { "type": "string" },
+        "remoteId": { "type": "string" },
+        "state": { "enum": ["pending", "active", "closed", "failed"] }
+      }
+    },
+    "event": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["eventId", "kind", "data"],
+      "properties": {
+        "eventId": { "type": "string" },
+        "kind": {
+          "enum": [
+            "request-accepted",
+            "request-denied",
+            "session-opened",
+            "session-closed",
+            "permission-changed"
+          ]
+        },
+        "sessionId": { "type": "string" },
+        "data": { "type": "object" }
+      }
+    },
+    "response": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["requestId", "operation", "surface", "profile", "status"],
+      "properties": {
+        "requestId": { "type": "string" },
+        "operation": { "type": "string" },
+        "surface": { "enum": ["nuxt", "mcp", "internal"] },
+        "profile": { "enum": ["customer-support", "full-desk"] },
+        "status": { "enum": ["accepted", "denied", "unsupported", "error"] },
+        "auditId": { "type": "integer", "minimum": 1 },
+        "data": { "type": "object" },
+        "events": {
+          "type": "array",
+          "items": { "$ref": "#/definitions/event" }
+        },
+        "error": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["code", "message"],
+          "properties": {
+            "code": { "type": "string" },
+            "message": { "type": "string" }
+          }
+        }
+      }
+    }
+  }
+}

@@ -91,8 +91,8 @@ unsafe fn set_delegate(handler: Option<Box<dyn AppHandler>>) {
     );
 
     decl.add_method(
-        sel!(applicationShouldHandleReopen:),
-        application_should_handle_reopen as extern "C" fn(&mut Object, Sel, id) -> BOOL,
+        sel!(applicationShouldHandleReopen:hasVisibleWindows:),
+        application_should_handle_reopen as extern "C" fn(&mut Object, Sel, id, BOOL) -> BOOL,
     );
 
     decl.add_method(
@@ -150,12 +150,50 @@ extern "C" fn application_should_handle_open_untitled_file(
         let inner: *mut c_void = *this.get_ivar(APP_HANDLER_IVAR);
         let inner = &mut *(inner as *mut DelegateState);
         (*inner).command(AWAKE);
+        return NO;
     }
     YES
 }
 
-extern "C" fn application_should_handle_reopen(_this: &mut Object, _: Sel, _sender: id) -> BOOL {
-    YES
+extern "C" fn application_should_handle_reopen(
+    _this: &mut Object,
+    _: Sel,
+    sender: id,
+    _has_visible_windows: BOOL,
+) -> BOOL {
+    unsafe {
+        let () = msg_send![sender, activateIgnoringOtherApps: YES];
+        let windows: id = msg_send![sender, windows];
+        let window_count: usize = msg_send![windows, count];
+        let mut miniaturized_window = nil;
+        let mut hidden_window = nil;
+
+        for index in 0..window_count {
+            let window: id = msg_send![windows, objectAtIndex: index];
+            let visible: BOOL = msg_send![window, isVisible];
+            if visible == YES {
+                let () = msg_send![window, makeKeyAndOrderFront: sender];
+                return NO;
+            }
+
+            let miniaturized: BOOL = msg_send![window, isMiniaturized];
+            if miniaturized == YES && miniaturized_window.is_null() {
+                miniaturized_window = window;
+            } else if visible != YES && hidden_window.is_null() {
+                hidden_window = window;
+            }
+        }
+
+        if !miniaturized_window.is_null() {
+            let () = msg_send![miniaturized_window, deminiaturize: sender];
+        } else if !hidden_window.is_null() {
+            let () = msg_send![hidden_window, makeKeyAndOrderFront: sender];
+        }
+    }
+
+    // The app handles Dock reopens above. Returning NO prevents AppKit from
+    // opening another untitled window/process as its default response.
+    NO
 }
 
 extern "C" fn application_did_become_active(_this: &mut Object, _: Sel, _sender: id) -> BOOL {
@@ -206,12 +244,35 @@ extern "C" fn handle_open_urls(_self: &Object, _cmd: Sel, _: id, urls: id) -> ()
 fn service_should_handle_reopen(
     _obj: &Object,
     _sel: Sel,
-    _sender: id,
+    sender: id,
     _has_visible_windows: BOOL,
 ) -> BOOL {
-    log::debug!("Invoking the main rustdesk process");
-    std::thread::spawn(move || crate::handle_url_scheme("".to_string()));
-    // Prevent default logic.
+    log::debug!("Reactivating the existing native desktop window");
+    unsafe {
+        let () = msg_send![sender, activateIgnoringOtherApps: YES];
+        let windows: id = msg_send![sender, windows];
+        let window_count: usize = msg_send![windows, count];
+        let mut miniaturized_window = nil;
+
+        for index in 0..window_count {
+            let window: id = msg_send![windows, objectAtIndex: index];
+            let visible: BOOL = msg_send![window, isVisible];
+            if visible == YES {
+                let () = msg_send![window, makeKeyAndOrderFront: sender];
+                return NO;
+            }
+
+            let miniaturized: BOOL = msg_send![window, isMiniaturized];
+            if miniaturized == YES && miniaturized_window.is_null() {
+                miniaturized_window = window;
+            }
+        }
+
+        if !miniaturized_window.is_null() {
+            let () = msg_send![miniaturized_window, deminiaturize: sender];
+        }
+    }
+
     NO
 }
 

@@ -1,6 +1,18 @@
-#[cfg(target_os = "windows")]
 fn build_c_impl() {
+    if std::env::var("CARGO_CFG_TARGET_OS").as_deref() != Ok("windows") {
+        return;
+    }
+
     let mut build = cc::Build::new();
+
+    println!("cargo:rerun-if-env-changed=COREVIA_CROSS_AR");
+    println!("cargo:rerun-if-env-changed=COREVIA_CROSS_RANLIB");
+    if let Ok(archiver) = std::env::var("COREVIA_CROSS_AR") {
+        build.archiver(archiver);
+    }
+    if let Ok(ranlib) = std::env::var("COREVIA_CROSS_RANLIB") {
+        build.ranlib(ranlib);
+    }
 
     build.file("src/windows/wf_cliprdr.c");
 
@@ -30,6 +42,5 @@ fn build_c_impl() {
 }
 
 fn main() {
-    #[cfg(target_os = "windows")]
     build_c_impl();
 }

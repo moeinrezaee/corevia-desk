@@ -22,6 +22,7 @@ use crate::{
     client::*,
     ui_session_interface::{InvokeUiSession, Session},
 };
+use super::{authorize_sciter_command, authorize_sciter_session};
 
 type Video = AssetPtr<video_destination>;
 
@@ -590,6 +591,390 @@ impl sciter::EventHandler for SciterSession {
 }
 
 impl SciterSession {
+    fn get_option(&self, key: String) -> String {
+        if crate::corevia_acl::authorize_setting(
+            crate::corevia_acl::Surface::Sciter,
+            &key,
+            false,
+        )
+        .is_err()
+        {
+            return String::new();
+        }
+        self.0.get_option(key)
+    }
+
+    fn set_option(&mut self, key: String, value: String) {
+        if crate::corevia_acl::authorize_setting_with_approval(
+            crate::corevia_acl::Surface::Sciter,
+            &key,
+            true,
+            "sciter-session-option-approval",
+        )
+        .is_err()
+        {
+            return;
+        }
+        self.0.set_option(key, value);
+    }
+
+    fn send_note(&self, note: String) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::ExternalHttpRequest,
+            "sciter-audit-note-approval",
+        ) {
+            self.0.send_note(note);
+        }
+    }
+
+    fn input_os_password(&self, password: String, activate: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::ElevateSession,
+            "sciter-elevation-approval",
+        ) {
+            self.0.input_os_password(password, activate);
+        }
+    }
+
+    fn send_mouse(
+        &self,
+        mask: i32,
+        x: i32,
+        y: i32,
+        alt: bool,
+        ctrl: bool,
+        shift: bool,
+        command: bool,
+    ) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::InputControl,
+            "sciter-input-control-approval",
+        ) {
+            self.0.send_mouse(mask, x, y, alt, ctrl, shift, command);
+        }
+    }
+
+    fn ctrl_alt_del(&self) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::InputControl,
+            "sciter-input-control-approval",
+        ) {
+            self.0.ctrl_alt_del();
+        }
+    }
+
+    fn lock_screen(&self) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::InputControl,
+            "sciter-input-control-approval",
+        ) {
+            self.0.lock_screen();
+        }
+    }
+
+    fn reconnect(&self, force_relay: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::StartConnection,
+            "sciter-reconnect-approval",
+        ) {
+            self.0.reconnect(force_relay);
+        }
+    }
+
+    fn send_chat(&self, text: String) {
+        if authorize_sciter_command(crate::corevia_acl::Capability::SendChat, None) {
+            self.0.send_chat(text);
+        }
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+    fn read_dir(&self, path: String, include_hidden: bool) -> Value {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            return Value::null();
+        }
+        crate::client::FileManager::read_dir(&self.0, path, include_hidden)
+    }
+
+    fn read_remote_dir(&self, path: String, include_hidden: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::read_remote_dir(&self.0, path, include_hidden);
+        }
+    }
+
+    fn remove_dir(&self, id: i32, path: String, is_remote: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::remove_dir(&self.0, id, path, is_remote);
+        }
+    }
+
+    fn create_dir(&self, id: i32, path: String, is_remote: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::create_dir(&self.0, id, path, is_remote);
+        }
+    }
+
+    fn remove_file(&self, id: i32, path: String, file_num: i32, is_remote: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::remove_file(&self.0, id, path, file_num, is_remote);
+        }
+    }
+
+    fn remove_dir_all(&self, id: i32, path: String, is_remote: bool, include_hidden: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::remove_dir_all(
+                &self.0,
+                id,
+                path,
+                is_remote,
+                include_hidden,
+            );
+        }
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+    fn confirm_delete_files(&self, id: i32, file_num: i32) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::confirm_delete_files(&self.0, id, file_num);
+        }
+    }
+
+    #[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+    fn set_no_confirm(&self, id: i32) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::set_no_confirm(&self.0, id);
+        }
+    }
+
+    fn cancel_job(&self, id: i32) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::cancel_job(&self.0, id);
+        }
+    }
+
+    fn send_files(
+        &self,
+        id: i32,
+        transfer_type: i32,
+        path: String,
+        to: String,
+        file_num: i32,
+        include_hidden: bool,
+        is_remote: bool,
+    ) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::send_files(
+                &self.0,
+                id,
+                transfer_type,
+                path,
+                to,
+                file_num,
+                include_hidden,
+                is_remote,
+            );
+        }
+    }
+
+    fn add_job(
+        &self,
+        id: i32,
+        transfer_type: i32,
+        path: String,
+        to: String,
+        file_num: i32,
+        include_hidden: bool,
+        is_remote: bool,
+    ) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::add_job(
+                &self.0,
+                id,
+                transfer_type,
+                path,
+                to,
+                file_num,
+                include_hidden,
+                is_remote,
+            );
+        }
+    }
+
+    fn resume_job(&self, id: i32, is_remote: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            crate::client::FileManager::resume_job(&self.0, id, is_remote);
+        }
+    }
+
+    fn add_port_forward(&self, port: i32, remote_host: String, remote_port: i32) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UsePortForward,
+            "sciter-port-forward-approval",
+        ) {
+            self.0.add_port_forward(port, remote_host, remote_port);
+        }
+    }
+
+    fn remove_port_forward(&self, port: i32) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UsePortForward,
+            "sciter-port-forward-approval",
+        ) {
+            self.0.remove_port_forward(port);
+        }
+    }
+
+    #[cfg(not(feature = "flutter"))]
+    fn set_write_override(
+        &mut self,
+        job_id: i32,
+        file_num: i32,
+        is_override: bool,
+        remember: bool,
+        is_upload: bool,
+    ) -> bool {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            return false;
+        }
+        self.0
+            .set_write_override(job_id, file_num, is_override, remember, is_upload)
+    }
+
+    fn switch_display(&self, display: i32) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::InputControl,
+            "sciter-input-control-approval",
+        ) {
+            self.0.switch_display(display);
+        }
+    }
+
+    fn continue_insecure_connection(&self, continue_insecure: bool) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::StartConnection,
+            "sciter-insecure-connection-approval",
+        ) {
+            self.0.continue_insecure_connection(continue_insecure);
+        }
+    }
+
+    fn new_rdp(&self) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UsePortForward,
+            "sciter-rdp-approval",
+        ) {
+            self.0.new_rdp();
+        }
+    }
+
+    fn toggle_option(&self, name: String) {
+        if crate::corevia_acl::authorize_session_option(
+            crate::corevia_acl::Surface::Sciter,
+            &name,
+            "sciter-session-option-approval",
+        )
+        .is_ok()
+        {
+            self.0.toggle_option(name);
+        }
+    }
+
+    fn toggle_privacy_mode(&self, impl_key: String, on: bool) {
+        if !on
+            || authorize_sciter_session(
+                crate::corevia_acl::Capability::TogglePrivacyMode,
+                "sciter-privacy-mode-approval",
+            )
+        {
+            self.0.toggle_privacy_mode(impl_key, on);
+        }
+    }
+
+    fn record_screen(&self, start: bool) {
+        if !start
+            || authorize_sciter_session(
+                crate::corevia_acl::Capability::RecordSession,
+                "sciter-recording-approval",
+            )
+        {
+            self.0.record_screen(start);
+        }
+    }
+
+    fn restart_remote_device(&self) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::RestartRemoteDevice,
+            "sciter-restart-approval",
+        ) {
+            self.0.restart_remote_device();
+        }
+    }
+
+    fn request_voice_call(&self) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UseVoiceCall,
+            "sciter-voice-call-approval",
+        ) {
+            self.0.request_voice_call();
+        }
+    }
+
+    fn set_selected_windows_session_id(&mut self, session_id: String) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::ElevateSession,
+            "sciter-selected-user-session-approval",
+        ) {
+            self.0.send_selected_session_id(session_id);
+        }
+    }
+
+    fn on_printer_selected(&self, id: i32, path: String, printer_name: String) {
+        if authorize_sciter_session(
+            crate::corevia_acl::Capability::UsePrinter,
+            "sciter-printer-approval",
+        ) {
+            self.0.printer_response(id, path, printer_name);
+        }
+    }
+
     pub fn new(cmd: String, id: String, password: String, args: Vec<String>) -> Self {
         let force_relay = args.contains(&"--relay".to_string());
         let session: Session<SciterHandler> = Session {
@@ -640,7 +1025,7 @@ impl SciterSession {
     }
 
     pub fn get_local_option(&self, key: String) -> String {
-        crate::ui_interface::get_local_option(key)
+        crate::ui_interface::get_local_option_from(crate::corevia_acl::Surface::Sciter, key)
     }
 
     pub fn get_icon(&self) -> String {
@@ -658,6 +1043,12 @@ impl SciterSession {
     }
 
     fn save_size(&mut self, x: i32, y: i32, w: i32, h: i32) {
+        if !authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            return;
+        }
         let size = (x, y, w, h);
         let mut config = self.load_config();
         if self.is_file_transfer() {
@@ -696,8 +1087,40 @@ impl SciterSession {
         log::info!("size saved");
     }
 
-    fn set_selected_windows_session_id(&mut self, u_sid: String) {
-        self.send_selected_session_id(u_sid);
+    fn save_view_style(&self, value: String) {
+        if authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            self.0.save_view_style(value);
+        }
+    }
+
+    fn save_image_quality(&self, value: String) {
+        if authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            self.0.save_image_quality(value);
+        }
+    }
+
+    fn save_custom_image_quality(&self, value: i32) {
+        if authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            self.0.save_custom_image_quality(value);
+        }
+    }
+
+    fn save_keyboard_mode(&self, value: String) {
+        if authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            self.0.save_keyboard_mode(value);
+        }
     }
 
     fn has_file_clipboard(&self) -> bool {
@@ -751,6 +1174,12 @@ impl SciterSession {
     }
 
     fn save_close_state(&mut self, k: String, v: String) {
+        if !authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            return;
+        }
         self.close_state.insert(k, v);
     }
 
@@ -874,6 +1303,12 @@ impl SciterSession {
     }
 
     fn transfer_file(&mut self) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::UseFileTransfer,
+            "sciter-file-transfer-approval",
+        ) {
+            return;
+        }
         let id = self.get_id();
         let args = vec!["--file-transfer", &id, &self.password];
         if let Err(err) = crate::run_me(args) {
@@ -882,6 +1317,12 @@ impl SciterSession {
     }
 
     fn tunnel(&mut self) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::UsePortForward,
+            "sciter-port-forward-approval",
+        ) {
+            return;
+        }
         let id = self.get_id();
         let args = vec!["--port-forward", &id, &self.password];
         if let Err(err) = crate::run_me(args) {
@@ -903,10 +1344,6 @@ impl SciterSession {
             v.push(name);
         }
         v
-    }
-
-    fn on_printer_selected(&self, id: i32, path: String, printer_name: String) {
-        self.printer_response(id, path, printer_name);
     }
 
     fn handle_screenshot(&self, action: String) -> String {

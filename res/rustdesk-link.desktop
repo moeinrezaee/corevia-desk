@@ -1,11 +1,11 @@
 [Desktop Entry]
-Name=RustDesk
+Name=Corevia Desk
 NoDisplay=true
-MimeType=x-scheme-handler/rustdesk;
+MimeType=x-scheme-handler/corevia-desk;
 TryExec=rustdesk
 Exec=rustdesk %u
 Icon=rustdesk
 Terminal=false
 Type=Application
 StartupNotify=false
-StartupWMClass=rustdesk
+StartupWMClass=com.corevia.desk

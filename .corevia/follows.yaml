@@ -1,0 +1,15 @@
+---
+standards:
+  repo: corevia-standards
+  version: 0.1.0
+  source: local
+  path: ../corevia-standards
+repo_identity:
+  metadata: .corevia/repo.yaml
+documentation:
+  human_markdown: bilingual
+  machine_readable_exempt: true
+execution_policy:
+  source: docs/specs/openspec.yaml
+  no_manual_runtime_mutation: true
+  no_raw_secrets: true

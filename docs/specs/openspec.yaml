@@ -1,0 +1,130 @@
+---
+name: corevia-desk
+version: 0.1.0
+repo:
+  kind: service
+  name: Corevia Desk
+  source_of_truth: corevia-desk
+owners:
+  - platform-engineering
+source_of_truth:
+  repo: corevia-desk
+  roadmap: docs/roadmaps/roadmap.fa.md
+  acceptance: docs/specs/acceptance.fa.md
+  testspec: docs/specs/testspec.yaml
+delivery_lock:
+  updated: 2026-10-08
+  primary_success_criterion: >-
+    Full Desk and Customer Support for macOS and Windows are installable and
+    usable from the current source. Full Desk connects by Peer ID through the
+    configured ID/Relay route, displays a stable live frame, accepts authorized
+    input, closes and reconnects. Every visible UI and session-tool action is
+    connected to real native behavior and verified with evidence.
+  execution_order:
+    - p0_current_source_peer_id_id_relay_frame_input_reconnect
+    - p1_full_ui_data_and_toolbox_matrix
+    - p1_5_customer_support_and_single_instance_macos_windows
+    - p2_current_source_mcp_tools_and_acl
+    - p3_notifications_and_secret_visibility
+    - p4_ci_nexus_immutable_artifacts
+    - p5_full_desk_linux_docker
+    - p6_future_vscode_extension
+  completion_gate: >-
+    Do not mark delivery complete until current-source evidence passes P0, P1,
+    P1.5, P2, and P4 for both profiles on macOS and Windows. A login or
+    handshake alone is not a connection pass. A browser preview, MCP result,
+    old bundle, IP/RDP session, or same-network connection cannot substitute
+    for the product Peer-ID/ID-Relay path. Linux and Docker follow the desktop
+    gates; VS Code remains deferred.
+  current_state:
+    priority: p0_current_source_peer_id_id_relay_frame_input_reconnect
+    status: in_progress
+    blocker: >-
+      The current Customer Support macOS bundle reports screen capture
+      unavailable. The owner accepts equivalent Windows evidence as a clearly
+      labeled cross-platform proxy, but a safe governed interactive Windows
+      test route and isolated desktop are not available. The available Bridge
+      worker-check executor is draft, uses HTTP Basic without certificate
+      validation, and only probes network reachability; it must not be run.
+    next_gate: >-
+      Safely verify a current-source Peer-ID/ID-Relay session with stable image
+      and reconnect on an isolated endpoint, then test input and every session
+      tool with native readback.
+excluded_active_scope:
+  - flutter
+  - dart
+  - sciter
+capabilities:
+  - RemoteDesktopCore
+  - CrossPlatformClient
+  - WebViewUi
+  - McpControlSurface
+  - ReleasePackaging
+architecture:
+  rust_core:
+    path: src
+    responsibility: system access, remote desktop protocol, sessions, security, and native services
+  active_ui:
+    runtime: Rust plus Nuxt inside native WebView
+    source: web
+    native_host: src/webview.rs
+    bridge: src/corevia_bridge.rs
+    acl: src/corevia_acl.rs
+  legacy_ui_sources:
+    paths: [flutter, src/ui.rs]
+    status: preserved-not-active
+    excluded_from: [build, test, installer, release]
+  profiles:
+    full_desk:
+      cargo_feature: default
+      capability_scope: all-approved-capabilities
+      macos_bundle_id: com.corevia.desk
+    customer_support:
+      cargo_feature: corevia-customer-support
+      capability_scope: inbound-approval-and-customer-settings
+      macos_bundle_id: com.corevia.desk.customer-support
+      outbound_connections: forbidden
+      window: fixed-mobile-size-on-desktop
+boundaries:
+  shared_acl: src/corevia_acl.rs
+  ui_direct_low_level_access: forbidden
+  generic_mcp_proxy: forbidden
+  system_command_tool: forbidden
+  operational_mutations: Corevia Standards -> Corevia Bridge -> connectcore
+release:
+  first_delivery_profiles:
+    customer_support: [macos, windows]
+    full_desk: [macos, windows]
+  artifact_store: Nexus
+  versioned_artifacts: immutable
+  signing_required: false
+  linux_priority: after_macos_windows
+functional_priority:
+  p0_connection:
+    status: open
+    required: [current_source, peer_id, id_relay, approval, active_state, stable_live_frame, authorized_input, close, reconnect]
+  p1_core_ui:
+    status: in_progress
+    required: [all_screens_and_controls, real_actions, devices, sessions, settings, recent_connections, persistence, no_duplicates, concurrent_sessions, clipboard, toolbox, empty_loading_error_states, rtl_ltr, responsive]
+  p1_5_native_delivery:
+    status: in_progress
+    required: [customer_support_macos, customer_support_windows, full_desk_macos, full_desk_windows, side_by_side_profiles, single_instance_per_profile, customer_support_fixed_window]
+  p2_mcp:
+    status: in_progress
+    required: [full_desk_catalog_25, customer_support_catalog_9, same_rust_acl, per_call_approval, audit_readback, safe_denials, each_tool_live_test]
+  p3_extras:
+    status: open
+    required: [success_warning_danger_info_notifications, controlled_secret_visibility]
+  p4_delivery:
+    status: open
+    required: [current_commit_pipeline, native_macos_windows_artifacts, immutable_nexus_publish, artifact_readback]
+  p5_linux_docker:
+    status: deferred_until_desktop_gates
+    required: [full_desk_linux, server_architecture_image, environment_configuration, docker_smoke]
+  p6_future:
+    status: deferred
+    required: [vscode_extension_only_after_all_delivery_gates]
+security:
+  sensitive_actions: explicit_approval_and_redacted_audit
+  raw_secrets_in_source_logs_or_evidence: forbidden
+  certificate_validation_bypass: forbidden

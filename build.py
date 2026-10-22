@@ -25,6 +25,7 @@ osx = platform.platform().startswith(
     'Darwin') or platform.platform().startswith("macOS")
 hbb_name = 'rustdesk' + ('.exe' if windows else '')
 exe_path = 'target/release/' + hbb_name
+flutter_windows_binary_name = 'CoreviaDesk.exe'
 if windows:
     win_arch = 'arm64' if platform.machine().lower() in ('arm64', 'aarch64') else 'x64'
     flutter_build_dir = f'build/windows/{win_arch}/runner/Release/'
@@ -118,6 +119,12 @@ def make_parser():
              'Available: [Not used for now]. Special value is "ALL" and empty "". Default is empty.')
     parser.add_argument('--flutter', action='store_true',
                         help='Build flutter package', default=False)
+    parser.add_argument(
+        '--profile',
+        choices=('full-desk', 'customer-support'),
+        default=os.environ.get('COREVIA_DESK_PROFILE', 'full-desk'),
+        help='Corevia Desk release profile (default: full-desk)'
+    )
     parser.add_argument(
         '--hwcodec',
         action='store_true',
@@ -314,6 +321,8 @@ def linux_packaging_branch():
 
 def get_features(args):
     features = ['inline'] if not args.flutter else []
+    if args.profile == 'customer-support':
+        features.append('corevia-customer-support')
     if args.hwcodec:
         features.append('hwcodec')
     if args.vram:
@@ -906,12 +915,15 @@ def build_flutter_dmg(version, features):
     mac_arch = 'arm64' if platform.machine().lower() in ('arm64', 'aarch64') else 'x86_64'
     system2(
         f'FLUTTER_XCODE_ARCHS={mac_arch} FLUTTER_XCODE_ONLY_ACTIVE_ARCH=YES flutter build macos --release')
-    system2('cp -rf ../target/release/service ./build/macos/Build/Products/Release/RustDesk.app/Contents/MacOS/')
-    '''
+    system2('cp -rf ../target/release/service ./build/macos/Build/Products/Release/CoreviaDesk.app/Contents/MacOS/')
+    # hdiutil is part of macOS, so a local build does not depend on the optional
+    # create-dmg package. The resulting image is intentionally unsigned here;
+    # signing and notarization stay in the release environment.
+    app_path = os.path.abspath('./build/macos/Build/Products/Release/CoreviaDesk.app')
+    dmg_path = os.path.abspath(f'../corevia-desk-{version}-{mac_arch}.dmg')
     system2(
-        "create-dmg --volname \"RustDesk Installer\" --window-pos 200 120 --window-size 800 400 --icon-size 100 --app-drop-link 600 185 --icon RustDesk.app 200 190 --hide-extension RustDesk.app rustdesk.dmg ./build/macos/Build/Products/Release/RustDesk.app")
-    os.rename("rustdesk.dmg", f"../rustdesk-{version}.dmg")
-    '''
+        f'/usr/bin/hdiutil create -volname "Corevia Desk" -srcfolder "{app_path}" '
+        f'-ov -format UDZO "{dmg_path}"')
     os.chdir("..")
 
 
@@ -942,19 +954,19 @@ def build_flutter_windows(version, features, skip_portable_pack):
     os.chdir('libs/portable')
     system2('pip3 install -r requirements.txt')
     system2(
-        f'python3 ./generate.py -f ../../{flutter_build_dir_2} -o . -e ../../{flutter_build_dir_2}/rustdesk.exe')
+        f'python3 ./generate.py -f ../../{flutter_build_dir_2} -o . -e ../../{flutter_build_dir_2}/{flutter_windows_binary_name}')
     os.chdir('../..')
-    if os.path.exists('./rustdesk_portable.exe'):
-        os.replace('./target/release/rustdesk-portable-packer.exe',
-                   './rustdesk_portable.exe')
+    portable_name = './corevia_desk_portable.exe'
+    if os.path.exists(portable_name):
+        os.replace('./target/release/rustdesk-portable-packer.exe', portable_name)
     else:
-        os.rename('./target/release/rustdesk-portable-packer.exe',
-                  './rustdesk_portable.exe')
+        os.rename('./target/release/rustdesk-portable-packer.exe', portable_name)
     print(
-        f'output location: {os.path.abspath(os.curdir)}/rustdesk_portable.exe')
-    os.rename('./rustdesk_portable.exe', f'./rustdesk-{version}-install.exe')
+        f'output location: {os.path.abspath(os.curdir)}/corevia_desk_portable.exe')
+    installer_name = f'./corevia-desk-{version}-install.exe'
+    os.rename(portable_name, installer_name)
     print(
-        f'output location: {os.path.abspath(os.curdir)}/rustdesk-{version}-install.exe')
+        f'output location: {os.path.abspath(os.curdir)}/corevia-desk-{version}-install.exe')
 
 
 def main():
@@ -1069,9 +1081,9 @@ def main():
             system2('cargo --locked bundle --release --features ' + features)
             if osx:
                 system2(
-                    'strip target/release/bundle/osx/RustDesk.app/Contents/MacOS/rustdesk')
+                    'strip target/release/bundle/osx/CoreviaDesk.app/Contents/MacOS/rustdesk')
                 system2(
-                    'cp libsciter.dylib target/release/bundle/osx/RustDesk.app/Contents/MacOS/')
+                    'cp libsciter.dylib target/release/bundle/osx/CoreviaDesk.app/Contents/MacOS/')
                 # https://github.com/sindresorhus/create-dmg
                 system2('/bin/rm -rf *.dmg')
                 pa = os.environ.get('P')
@@ -1079,30 +1091,30 @@ def main():
                     system2('''
     # buggy: rcodesign sign ... path/*, have to sign one by one
     # install rcodesign via cargo install apple-codesign
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/RustDesk.app/Contents/MacOS/rustdesk
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/RustDesk.app/Contents/MacOS/libsciter.dylib
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/RustDesk.app
+    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/CoreviaDesk.app/Contents/MacOS/rustdesk
+    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/CoreviaDesk.app/Contents/MacOS/libsciter.dylib
+    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./target/release/bundle/osx/CoreviaDesk.app
     # goto "Keychain Access" -> "My Certificates" for below id which starts with "Developer ID Application:"
-    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/RustDesk.app/Contents/MacOS/*
-    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/RustDesk.app
+    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/CoreviaDesk.app/Contents/MacOS/*
+    codesign -s "Developer ID Application: {0}" --force --options runtime  ./target/release/bundle/osx/CoreviaDesk.app
     '''.format(pa))
                 system2(
-                    'create-dmg "RustDesk %s.dmg" "target/release/bundle/osx/RustDesk.app"' % version)
-                os.rename('RustDesk %s.dmg' %
-                          version, 'rustdesk-%s.dmg' % version)
+                    'create-dmg "Corevia Desk %s.dmg" "target/release/bundle/osx/CoreviaDesk.app"' % version)
+                os.rename('Corevia Desk %s.dmg' %
+                          version, 'corevia-desk-%s.dmg' % version)
                 if pa:
                     system2('''
     # https://pyoxidizer.readthedocs.io/en/apple-codesign-0.14.0/apple_codesign.html
     # https://pyoxidizer.readthedocs.io/en/stable/tugger_code_signing.html
     # https://developer.apple.com/developer-id/
     # goto xcode and login with apple id, manager certificates (Developer ID Application and/or Developer ID Installer) online there (only download and double click (install) cer file can not export p12 because no private key)
-    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./rustdesk-{1}.dmg
-    codesign -s "Developer ID Application: {0}" --force --options runtime ./rustdesk-{1}.dmg
+    #rcodesign sign --p12-file ~/.p12/rustdesk-developer-id.p12 --p12-password-file ~/.p12/.cert-pass --code-signature-flags runtime ./corevia-desk-{1}.dmg
+    codesign -s "Developer ID Application: {0}" --force --options runtime ./corevia-desk-{1}.dmg
     # https://appstoreconnect.apple.com/access/api
     # https://gregoryszorc.com/docs/apple-codesign/stable/apple_codesign_getting_started.html#apple-codesign-app-store-connect-api-key
     # p8 file is generated when you generate api key (can download only once)
-    rcodesign notary-submit --api-key-path ../.p12/api-key.json  --staple rustdesk-{1}.dmg
-    # verify:  spctl -a -t exec -v /Applications/RustDesk.app
+    rcodesign notary-submit --api-key-path ../.p12/api-key.json  --staple corevia-desk-{1}.dmg
+    # verify:  spctl -a -t exec -v /Applications/CoreviaDesk.app
     '''.format(pa, version))
                 else:
                     print('Not signed')

@@ -1,5 +1,5 @@
 <p align="center">
-  <img src="res/logo-header.svg" alt="RustDesk - Your remote desktop"><br>
+  <img src="res/logo-header.svg" alt="Corevia Desk - Your remote desktop"><br>
   <a href="#raw-steps-to-build">Build</a> •
   <a href="#how-to-build-with-docker">Docker</a> •
   <a href="#file-structure">Structure</a> •
@@ -10,14 +10,24 @@
 
 > [!Caution]
 > **Misuse Disclaimer:** <br>
-> The developers of RustDesk do not condone or support any unethical or illegal use of this software. Misuse, such as unauthorized access, control or invasion of privacy, is strictly against our guidelines. The authors are not responsible for any misuse of the application.
+> The developers of Corevia Desk do not condone or support any unethical or illegal use of this software. Misuse, such as unauthorized access, control or invasion of privacy, is strictly against our guidelines. The authors are not responsible for any misuse of the application.
 
 
 Chat with us: [Discord](https://discord.gg/nDceKgxnkV) | [Twitter](https://twitter.com/rustdesk) | [Reddit](https://www.reddit.com/r/rustdesk) | [YouTube](https://www.youtube.com/@rustdesk)
 
 [![RustDesk Server Pro](https://img.shields.io/badge/RustDesk%20Server%20Pro-Advanced%20Features-blue)](https://rustdesk.com/pricing.html)
 
-Yet another remote desktop solution, written in Rust. Works out of the box with no configuration required. You have full control of your data, with no concerns about security. You can use our rendezvous/relay server, [set up your own](https://rustdesk.com/server), or [write your own rendezvous/relay server](https://github.com/rustdesk/rustdesk-server-demo).
+Corevia Desk is a Corevia-branded remote desktop solution based on the RustDesk open-source project. It keeps one Rust Core and provides two governed release profiles: Full Desk and Customer Support. The active desktop UI is Nuxt hosted inside a native Rust WebView; the inherited Flutter, Dart, and Sciter sources are preserved for history only and are not active release dependencies.
+
+The default runtime uses the configured RustDesk ID/Relay path, so endpoints do not need to be on the same network. Server values are read from runtime configuration and are never stored in this repository's documentation.
+
+The repository keeps one Rust core and offers two controlled product profiles:
+Full Desk is the default full-capability build, while Customer Support is a
+restricted profile that exposes only customer-side settings, incoming
+connection approval, and connection permissions. The active desktop UI is the
+Nuxt view layer in `web/`, hosted by a native Rust WebView contract. Inherited
+native UI sources are preserved for history only and are not part of the active
+build, CI, installer, or release path.
 
 ![image](https://user-images.githubusercontent.com/71636191/171661982-430285f0-2e12-4b1d-9957-4a58e375304d.png)
 
@@ -38,26 +48,42 @@ RustDesk welcomes contribution from everyone. See [CONTRIBUTING.md](docs/CONTRIB
 
 ## Dependencies
 
-Desktop versions use Flutter or Sciter (deprecated) for GUI. This tutorial is for Sciter only, since it is easier and more friendly to start. Check out our [CI](https://github.com/rustdesk/rustdesk/blob/master/.github/workflows/flutter-build.yml) for building the Flutter version.
-
-Please download Sciter dynamic library yourself.
-
-[Windows](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll) |
-[Linux](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.lnx/x64/libsciter-gtk.so) |
-[macOS](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.osx/libsciter.dylib)
+The active desktop build uses Rust, Node.js for the Nuxt asset build, and the
+selected native WebView host. Flutter, Dart, and Sciter are not required for
+the active desktop path. Native Windows builds require the MSVC/Windows SDK
+toolchain; macOS and Linux builds require their native Rust/WebView libraries.
 
 ## Raw Steps to build
 
-- Prepare your Rust development env and C++ build env
+The governed release path builds the Nuxt output, packages it with the Rust
+native WebView host, validates the profile surface, and creates a checksum-
+backed artifact. See [the release guide](release/README.md) and the
+[documentation index](docs/INDEX.md).
 
-- Install [vcpkg](https://github.com/microsoft/vcpkg), and set `VCPKG_ROOT` env variable correctly
+For the local web layer:
 
-  - Windows: vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static
-  - Linux/macOS: vcpkg install libvpx libyuv opus aom
+```sh
+npm --prefix web ci
+npm --prefix web run lint:atomic
+npm --prefix web run lint:profiles
+npm --prefix web run build
+COREVIA_DESK_PROFILE=customer-support npm --prefix web run build
+```
 
-- run `cargo run`
+For the active Rust checks:
 
-## [Build](https://rustdesk.com/docs/en/dev/build/)
+```sh
+cargo test --lib
+```
+
+Do not use the inherited Sciter or Flutter launchers for Corevia Desk desktop
+verification.
+
+## Legacy upstream build reference (not the Corevia Desk path)
+
+The upstream instructions below are retained only as historical reference. They
+must not be used for Corevia Desk desktop builds; use [release/README.md](release/README.md)
+and the native Rust + Nuxt/WebView pipeline instead.
 
 ## How to Build on Linux
 
@@ -125,7 +151,7 @@ mv libsciter-gtk.so target/debug
 VCPKG_ROOT=$HOME/vcpkg cargo run
 ```
 
-## How to build with Docker
+## Legacy upstream Docker reference (not the Corevia Desk Docker image)
 
 Begin by cloning the repository and building the Docker container:
 
@@ -162,12 +188,24 @@ Please ensure that you run these commands from the root of the RustDesk reposito
 - **[libs/scrap](https://github.com/rustdesk/rustdesk/tree/master/libs/scrap)**: screen capture
 - **[libs/enigo](https://github.com/rustdesk/rustdesk/tree/master/libs/enigo)**: platform specific keyboard/mouse control
 - **[libs/clipboard](https://github.com/rustdesk/rustdesk/tree/master/libs/clipboard)**: file copy and paste implementation for Windows, Linux, macOS.
-- **[src/ui](https://github.com/rustdesk/rustdesk/tree/master/src/ui)**: obsolete Sciter UI (deprecated)
+- **[src/webview.rs](src/webview.rs)**: active native WebView host for the Nuxt UI
+- **[src/corevia_acl.rs](src/corevia_acl.rs)**: shared Rust permission boundary
+- **[src/corevia_bridge.rs](src/corevia_bridge.rs)**: bounded bridge dispatch for Nuxt and local adapters
+- **[web](web/)**: active Nuxt view layer sourced from `corevia-desk-ui`
+- **[mcp](mcp/)**: governed MCP adapter and profile catalogs
+- **[src/ui](https://github.com/rustdesk/rustdesk/tree/master/src/ui)**: preserved historical native UI source (not active Corevia Desk UI)
 - **[src/server](https://github.com/rustdesk/rustdesk/tree/master/src/server)**: audio/clipboard/input/video services, and network connections
 - **[src/client.rs](https://github.com/rustdesk/rustdesk/tree/master/src/client.rs)**: start a peer connection
 - **[src/rendezvous_mediator.rs](https://github.com/rustdesk/rustdesk/tree/master/src/rendezvous_mediator.rs)**: Communicate with [rustdesk-server](https://github.com/rustdesk/rustdesk-server), wait for remote direct (TCP hole punching) or relayed connection
 - **[src/platform](https://github.com/rustdesk/rustdesk/tree/master/src/platform)**: platform specific code
-- **[flutter](https://github.com/rustdesk/rustdesk/tree/master/flutter)**: Flutter code for desktop and mobile
+- **[flutter](https://github.com/rustdesk/rustdesk/tree/master/flutter)**: preserved inherited source only; not part of the active Corevia Desk path
+
+## Corevia documentation
+
+- [Documentation index](docs/INDEX.md)
+- [Current status](docs/evidence/current-status.md)
+- [Acceptance matrix](docs/specs/acceptance.md)
+- [Next-context handoff](docs/handoff/next-context.md)
 
 ## Screenshots
 
@@ -178,4 +216,3 @@ Please ensure that you run these commands from the root of the RustDesk reposito
 ![File Transfer](https://github.com/rustdesk/rustdesk/assets/28412477/39511ad3-aa9a-4f8c-8947-1cce286a46ad)
 
 ![TCP Tunneling](https://github.com/rustdesk/rustdesk/assets/28412477/78e8708f-e87e-4570-8373-1360033ea6c5)
-

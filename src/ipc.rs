@@ -321,24 +321,43 @@ pub enum SwitchSidesUuidAction {
 #[serde(tag = "t", content = "c")]
 pub enum Data {
     Login {
+        #[serde(default)]
         id: i32,
+        #[serde(default)]
         is_file_transfer: bool,
+        #[serde(default)]
         is_view_camera: bool,
+        #[serde(default)]
         is_terminal: bool,
+        #[serde(default)]
         peer_id: String,
+        #[serde(default)]
         name: String,
+        #[serde(default)]
         avatar: String,
+        #[serde(default)]
         authorized: bool,
+        #[serde(default)]
         port_forward: String,
+        #[serde(default)]
         keyboard: bool,
+        #[serde(default)]
         clipboard: bool,
+        #[serde(default)]
         audio: bool,
+        #[serde(default)]
         file: bool,
+        #[serde(default)]
         file_transfer_enabled: bool,
+        #[serde(default)]
         restart: bool,
+        #[serde(default)]
         recording: bool,
+        #[serde(default)]
         block_input: bool,
+        #[serde(default)]
         privacy_mode: bool,
+        #[serde(default)]
         from_switch: bool,
     },
     ChatMessage {
@@ -1571,9 +1590,14 @@ where
             Some(res) => {
                 let bytes = res?;
                 if let Ok(s) = std::str::from_utf8(&bytes) {
-                    if let Ok(data) = serde_json::from_str::<Data>(s) {
-                        return Ok(Some(data));
+                    match serde_json::from_str::<Data>(s) {
+                        Ok(data) => return Ok(Some(data)),
+                        Err(err) => {
+                            log::warn!("IPC data decode failed: {}", err);
+                        }
                     }
+                } else {
+                    log::warn!("IPC data decode failed: invalid UTF-8");
                 }
                 return Ok(None);
             }
@@ -2231,6 +2255,34 @@ mod test {
     fn verify_ffi_enum_data_size() {
         println!("{}", std::mem::size_of::<Data>());
         assert!(std::mem::size_of::<Data>() <= 120);
+    }
+
+    #[test]
+    fn login_ipc_accepts_older_payloads_with_missing_optional_fields() {
+        let payload = serde_json::json!({
+            "t": "Login",
+            "c": {
+                "id": 41,
+                "peer_id": "298636616",
+                "authorized": false
+            }
+        });
+        let decoded: Data = serde_json::from_value(payload).expect("legacy login payload");
+        match decoded {
+            Data::Login {
+                id,
+                peer_id,
+                authorized,
+                from_switch,
+                ..
+            } => {
+                assert_eq!(id, 41);
+                assert_eq!(peer_id, "298636616");
+                assert!(!authorized);
+                assert!(!from_switch);
+            }
+            _ => panic!("expected Login payload"),
+        }
     }
 
     #[cfg(any(target_os = "linux", target_os = "macos"))]

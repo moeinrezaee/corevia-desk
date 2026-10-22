@@ -778,15 +778,20 @@ impl Client {
             Some(v) => v,
             None => {
                 // send an empty message out in case server is setting up secure and waiting for first message
+                log::debug!(
+                    "Corevia native client secure handshake has no signed peer key; sending fallback"
+                );
                 conn.send(&Message::new()).await?;
                 return Ok(option_pk);
             }
         };
+        log::debug!("Corevia native client waiting for peer signed handshake");
         match timeout(READ_TIMEOUT, conn.next()).await? {
             Some(res) => {
                 let bytes = res?;
                 if let Ok(msg_in) = Message::parse_from_bytes(&bytes) {
                     if let Some(message::Union::SignedId(si)) = msg_in.union {
+                        log::debug!("Corevia native client received peer signed handshake");
                         if let Ok((id, their_pk_b)) = decode_id_pk(&si.id, &sign_pk) {
                             if id == peer_id {
                                 let (asymmetric_value, symmetric_value, key) =
@@ -799,6 +804,7 @@ impl Client {
                                 });
                                 timeout(CONNECT_TIMEOUT, conn.send(&msg_out)).await??;
                                 conn.set_key(key);
+                                log::debug!("Corevia native client completed secure handshake");
                             } else {
                                 log::error!("Handshake failed: sign failure");
                                 conn.send(&Message::new()).await?;
@@ -3615,6 +3621,10 @@ pub async fn handle_hash(
         hasher.finalize()[..].into()
     };
 
+    log::debug!(
+        "Corevia native client sending login request: password_provided={}",
+        !password.is_empty()
+    );
     send_login(lc.clone(), String::new(), String::new(), password, peer).await;
     lc.write().unwrap().hash = hash;
     true

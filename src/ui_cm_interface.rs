@@ -363,18 +363,47 @@ pub fn get_click_time() -> i64 {
 #[inline]
 #[cfg(not(any(target_os = "ios")))]
 pub fn authorize(id: i32) {
-    if let Some(client) = CLIENTS.write().unwrap().get_mut(&id) {
-        client.authorized = true;
-        allow_err!(client.tx.send(Data::Authorize));
-    };
+    authorize_from(
+        crate::corevia_acl::Surface::Sciter,
+        id,
+        "sciter-incoming-connection-approval",
+    );
 }
 
 #[inline]
 #[cfg(not(any(target_os = "ios")))]
-pub fn close(id: i32) {
+pub fn authorize_from(
+    surface: crate::corevia_acl::Surface,
+    id: i32,
+    approval_reference: &str,
+) -> bool {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::with_approval(
+        surface,
+        crate::corevia_acl::Capability::ApproveConnection,
+        approval_reference,
+    ))
+    .is_err()
+    {
+        return false;
+    }
+    if let Some(client) = CLIENTS.write().unwrap().get_mut(&id) {
+        client.authorized = true;
+        allow_err!(client.tx.send(Data::Authorize));
+        true
+    } else {
+        false
+    }
+}
+
+#[inline]
+#[cfg(not(any(target_os = "ios")))]
+pub fn close(id: i32) -> bool {
     if let Some(client) = CLIENTS.read().unwrap().get(&id) {
         allow_err!(client.tx.send(Data::Close));
-    };
+        true
+    } else {
+        false
+    }
 }
 
 /// Like `close`, but says the CM's WINDOW closed rather than a person disconnecting this peer.
@@ -395,20 +424,75 @@ pub fn remove(id: i32) {
 #[inline]
 #[cfg(not(any(target_os = "ios")))]
 pub fn send_chat(id: i32, text: String) {
+    send_chat_from(crate::corevia_acl::Surface::Sciter, id, text);
+}
+
+#[inline]
+#[cfg(not(any(target_os = "ios")))]
+pub fn send_chat_from(surface: crate::corevia_acl::Surface, id: i32, text: String) -> bool {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+        surface,
+        crate::corevia_acl::Capability::SendChat,
+    ))
+    .is_err()
+    {
+        return false;
+    }
     let clients = CLIENTS.read().unwrap();
     if let Some(client) = clients.get(&id) {
         allow_err!(client.tx.send(Data::ChatMessage { text }));
+        true
+    } else {
+        false
     }
 }
 
 #[inline]
 #[cfg(not(any(target_os = "ios")))]
 pub fn switch_permission(id: i32, name: String, enabled: bool) {
+    switch_permission_from(
+        crate::corevia_acl::Surface::Sciter,
+        id,
+        name,
+        enabled,
+        "sciter-connection-permission-approval",
+    );
+}
+
+#[inline]
+#[cfg(not(any(target_os = "ios")))]
+pub fn switch_permission_from(
+    surface: crate::corevia_acl::Surface,
+    id: i32,
+    name: String,
+    enabled: bool,
+    approval_reference: &str,
+) -> bool {
+    if !crate::corevia_acl::is_known_connection_permission(&name) {
+        log::info!("blocked cm switch_permission: unknown permission");
+        return false;
+    }
+    if crate::corevia_acl::authorize(
+        crate::corevia_acl::AuthorizationRequest::with_approval(
+            surface,
+            crate::corevia_acl::Capability::ChangeConnectionPermission,
+            approval_reference,
+        ),
+    )
+    .is_err()
+    {
+        return false;
+    }
     #[cfg(target_os = "android")]
     let is_keyboard_permission = name == "keyboard";
     #[cfg(not(target_os = "android"))]
     let is_keyboard_permission = false;
-    if !option2bool(
+    let bypass_legacy_accept_gate = matches!(
+        surface,
+        crate::corevia_acl::Surface::Nuxt | crate::corevia_acl::Surface::Mcp
+    );
+    if !bypass_legacy_accept_gate
+        && !option2bool(
         OPTION_ENABLE_PERM_CHANGE_IN_ACCEPT_WINDOW,
         &crate::get_builtin_option(OPTION_ENABLE_PERM_CHANGE_IN_ACCEPT_WINDOW),
     ) && !is_keyboard_permission
@@ -419,16 +503,31 @@ pub fn switch_permission(id: i32, name: String, enabled: bool) {
             name,
             enabled
         );
-        return;
+        return false;
     }
     if let Some(client) = CLIENTS.read().unwrap().get(&id) {
         allow_err!(client.tx.send(Data::SwitchPermission { name, enabled }));
-    };
+        true
+    } else {
+        false
+    }
 }
 
 #[inline]
 #[cfg(target_os = "android")]
 pub fn switch_permission_all(name: String, enabled: bool) {
+    if !crate::corevia_acl::is_known_connection_permission(&name)
+        || crate::corevia_acl::authorize(
+            crate::corevia_acl::AuthorizationRequest::with_approval(
+                crate::corevia_acl::Surface::Flutter,
+                crate::corevia_acl::Capability::ChangeConnectionPermission,
+                "flutter-connection-permission-approval",
+            ),
+        )
+        .is_err()
+    {
+        return;
+    }
     if name != "keyboard"
         && !option2bool(
             OPTION_ENABLE_PERM_CHANGE_IN_ACCEPT_WINDOW,
@@ -450,11 +549,10 @@ pub fn switch_permission_all(name: String, enabled: bool) {
     }
 }
 
-#[cfg(any(target_os = "android", target_os = "ios", feature = "flutter"))]
 #[inline]
 pub fn get_clients_state() -> String {
     let clients = CLIENTS.read().unwrap();
-    let res = Vec::from_iter(clients.values().cloned());
+    let res: Vec<_> = clients.values().cloned().collect();
     serde_json::to_string(&res).unwrap_or("".into())
 }
 
@@ -551,6 +649,7 @@ impl<T: InvokeUiCM> IpcTaskRunner<T> {
                             break;
                         }
                         Ok(Some(data)) => {
+                            log::debug!("connection manager received IPC data from server");
                             match data {
                                 Data::Login{id, is_file_transfer, is_view_camera, is_terminal, port_forward, peer_id, name, avatar, authorized, keyboard, clipboard, audio, file, file_transfer_enabled: _file_transfer_enabled, restart, recording, block_input, privacy_mode, from_switch} => {
                                     log::debug!("conn_id: {}", id);
@@ -1734,6 +1833,34 @@ pub fn elevate_portable(_id: i32) {
 #[cfg(any(target_os = "android", target_os = "ios", feature = "flutter"))]
 #[inline]
 pub fn handle_incoming_voice_call(id: i32, accept: bool) {
+    handle_incoming_voice_call_from(
+        crate::corevia_acl::Surface::Flutter,
+        id,
+        accept,
+        "flutter-voice-call-approval",
+    );
+}
+
+#[cfg(any(target_os = "android", target_os = "ios", feature = "flutter"))]
+#[inline]
+pub fn handle_incoming_voice_call_from(
+    surface: crate::corevia_acl::Surface,
+    id: i32,
+    accept: bool,
+    approval_reference: &str,
+) {
+    if accept
+        && crate::corevia_acl::authorize(
+            crate::corevia_acl::AuthorizationRequest::with_approval(
+                surface,
+                crate::corevia_acl::Capability::UseVoiceCall,
+                approval_reference,
+            ),
+        )
+        .is_err()
+    {
+        return;
+    }
     if let Some(client) = CLIENTS.read().unwrap().get(&id) {
         // Not handled in iOS yet.
         #[cfg(not(any(target_os = "ios")))]

@@ -14,10 +14,9 @@
 
 [![RustDesk Server Pro](https://img.shields.io/badge/RustDesk%20Server%20Pro-%D9%88%DB%8C%DA%98%DA%AF%DB%8C%E2%80%8C%D9%87%D8%A7%DB%8C%20%D9%BE%DB%8C%D8%B4%D8%B1%D9%81%D8%AA%D9%87-blue)](https://rustdesk.com/pricing.html)
 
-راست‌دسک (RustDesk) نرم‌افزاری برای کارکردن با رایانه‌ی رومیزی از راه دور است و با زبان برنامه‌نویسی Rust نوشته شده است. نیاز به تنظیمات چندانی ندارد و شما را قادر می سازد تا بدون نگرانی از امنیت اطلاعات خود بر آن‌ها کنترل کامل داشته باشید.
+Corevia Desk یک محصول ریموت‌دسکتاپ با برند Corevia و بر پایه‌ی پروژه‌ی متن‌باز RustDesk است. یک Rust Core و دو پروفایل حاکمیت‌شده‌ی Full Desk و Customer Support دارد. رابط فعال دسکتاپ Nuxt است که داخل WebView بومی Rust اجرا می‌شود؛ سورس‌های قدیمی Flutter، Dart و Sciter فقط برای تاریخچه نگه داشته شده‌اند و وابستگی فعال Release نیستند.
 
-می‌توانید از سرور rendezvous/relay ما استفاده کنید، [سرور خودتان را راه‌اندازی کنید](https://rustdesk.com/server) یا
-[ سرورrendezvous/relay  خود را بنویسید](https://github.com/rustdesk/rustdesk).
+Runtime پیش‌فرض از مسیر شناسه‌ی RustDesk و ID/Relay استفاده می‌کند؛ بنابراین دو دستگاه لازم نیست در یک شبکه باشند. مقادیر سرور از Runtime خوانده می‌شوند و در مستندات این مخزن ذخیره نمی‌شوند.
 
 ما از مشارکت همه استقبال می کنیم. برای راهنمایی جهت مشارکت به[`docs/CONTRIBUTING.md`](CONTRIBUTING.md) مراجعه کنید.
 
@@ -25,27 +24,35 @@
 
 [دریافت نرم‌افزار](https://github.com/rustdesk/rustdesk/releases)
 
-## وابستگی ها
+## وابستگی‌ها
 
-نسخه‌های رومیزی از [sciter](https://sciter.com/) برای رابط کاربری گرافیکی استفاده می‌کنند. خواهشمندیم کتابخانه‌ی پویای sciter را خودتان دانلود کنید از این منابع دریافت کنید.
+مسیر فعال دسکتاپ به Rust، Node.js برای ساخت Assetهای Nuxt و Host بومی WebView نیاز دارد. Flutter، Dart و Sciter برای مسیر فعال دسکتاپ لازم نیستند. Build بومی Windows به ابزارهای MSVC و Windows SDK و هر سیستم‌عامل به کتابخانه‌های بومی Rust/WebView خودش نیاز دارد.
 
-- [ویندوز](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.win/x64/sciter.dll)
-- [لینوکس](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.lnx/x64/libsciter-gtk.so)
-- [مک](https://raw.githubusercontent.com/c-smile/sciter-sdk/master/bin.osx/libsciter.dylib)
+## مسیر ساخت
 
-نسخه های همراه از Flutter استفاده می کنند. نسخه‌ی رومیزی را هم از Sciter به Flutter منتقل خواهیم کرد.
+مسیر کنترل‌شده ابتدا Assetهای Nuxt را می‌سازد، آن‌ها را با Host بومی WebView Rust بسته‌بندی می‌کند، سطح پروفایل را بررسی می‌کند و Artifact دارای Checksum می‌سازد. برای جزئیات [راهنمای انتشار](../release/README.fa.md) و [فهرست مستندات](INDEX.fa.md) را بخوان.
 
-## نیازمندی‌های ساخت
+برای لایه‌ی وب محلی:
 
-- محیط توسعه نرم افزار Rust و محیط ساخت ++C خود را آماده کنید
+```sh
+npm --prefix web ci
+npm --prefix web run lint:atomic
+npm --prefix web run lint:profiles
+npm --prefix web run build
+COREVIA_DESK_PROFILE=customer-support npm --prefix web run build
+```
 
-- نرم افزار [vcpkg](https://github.com/microsoft/vcpkg) را نصب کنید و متغیر `VCPKG_ROOT` را به درستی تنظیم کنید.
-- بسته‌های vcpkg مورد نیاز را نصب کنید:
-  - ویندوز: `vcpkg install libvpx:x64-windows-static libyuv:x64-windows-static opus:x64-windows-static aom:x64-windows-static`
-  - مک و لینوکس: `vcpkg install libvpx libyuv opus aom`
-- این دستور را اجرا کنید: `cargo run`
+برای تست فعال Rust:
 
-## [ساخت](https://rustdesk.com/docs/en/dev/build/)
+```sh
+cargo test --lib
+```
+
+برای بررسی دسکتاپ Corevia Desk از Launcherهای قدیمی Sciter یا Flutter استفاده نکن.
+
+## مرجع قدیمی ساخت upstream (مسیر Corevia Desk نیست)
+
+دستورهای باقی‌مانده‌ی زیر فقط برای تاریخچه نگه داشته شده‌اند و نباید برای Build دسکتاپ Corevia Desk استفاده شوند؛ مسیر [راهنمای انتشار](../release/README.fa.md) و Rust + Nuxt/WebView بومی را استفاده کن.
 
 ## نحوه ساخت بر روی لینوکس
 
@@ -105,7 +112,7 @@ mv libsciter-gtk.so target/debug
 VCPKG_ROOT=$HOME/vcpkg cargo run
 ```
 
-## نحوه ساخت با داکر
+## مرجع قدیمی Docker upstream (Image Corevia Desk نیست)
 
 این مخزن Git را دریافت کنید و کانتینر را به روش زیر بسازید
 
@@ -140,12 +147,24 @@ target/release/rustdesk
 - **[libs/hbb_common](https://github.com/rustdesk/rustdesk/tree/master/libs/hbb_common)**: video codec, config, tcp/udp wrapper, protobuf, fs functions for file transfer, and some other utility functions
 - **[libs/scrap](https://github.com/rustdesk/rustdesk/tree/master/libs/scrap)**: screen capture
 - **[libs/enigo](https://github.com/rustdesk/rustdesk/tree/master/libs/enigo)**: platform specific keyboard/mouse control
-- **[src/ui](https://github.com/rustdesk/rustdesk/tree/master/src/ui)**: GUI
+- **[src/webview.rs](../src/webview.rs)**: Host بومی فعال برای رابط Nuxt
+- **[src/corevia_acl.rs](../src/corevia_acl.rs)**: مرز مشترک مجوزهای Rust
+- **[src/corevia_bridge.rs](../src/corevia_bridge.rs)**: Dispatch محدود پل Nuxt و Adapterهای محلی
+- **[web](../web/)**: لایه‌ی فعال Nuxt با منبع `corevia-desk-ui`
+- **[mcp](../mcp/)**: Adapter و Catalog حاکمیت‌شده‌ی MCP
+- **[src/ui](https://github.com/rustdesk/rustdesk/tree/master/src/ui)**: GUI قدیمی حفظ‌شده، نه مسیر فعال Corevia Desk
 - **[src/server](https://github.com/rustdesk/rustdesk/tree/master/src/server)**: audio/clipboard/input/video services, and network connections
 - **[src/client.rs](https://github.com/rustdesk/rustdesk/tree/master/src/client.rs)**: start a peer connection
 - **[src/rendezvous_mediator.rs](https://github.com/rustdesk/rustdesk/tree/master/src/rendezvous_mediator.rs)**: Communicate with [rustdesk-server](https://github.com/rustdesk/rustdesk-server), wait for remote direct (TCP hole punching) or relayed connection
 - **[src/platform](https://github.com/rustdesk/rustdesk/tree/master/src/platform)**: platform specific code
-- **[flutter](https://github.com/rustdesk/rustdesk/tree/master/flutter)**: Flutter code for mobile
+- **[flutter](https://github.com/rustdesk/rustdesk/tree/master/flutter)**: سورس حفظ‌شده‌ی inherited و خارج از مسیر فعال Corevia Desk
+
+## مستندات Corevia
+
+- [فهرست مستندات](INDEX.fa.md)
+- [وضعیت فعلی](evidence/current-status.fa.md)
+- [ماتریس پذیرش](specs/acceptance.fa.md)
+- [Handoff کانتکست بعدی](handoff/next-context.fa.md)
 
 ## تصاویر محیط نرم‌افزار
 

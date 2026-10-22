@@ -2,9 +2,9 @@
 cmake_minimum_required(VERSION 3.14)
 project(rustdesk LANGUAGES CXX)
 
-# The name of the executable created for the application. Change this to change
-# the on-disk name of your application.
-set(BINARY_NAME "rustdesk")
+# The user-facing executable is shipped as Corevia Desk. The Rust library
+# keeps its compatibility name (`librustdesk.dll`).
+set(BINARY_NAME "CoreviaDesk")
 
 # Explicitly opt into modern CMake behaviors to avoid warnings with recent
 # versions of CMake.

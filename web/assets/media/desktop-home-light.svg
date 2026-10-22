@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Light home desktop preview</title>
+  <desc id="desc">A calm light personal desktop with a compact dashboard and widgets.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f0f7f7"/>
+      <stop offset="1" stop-color="#eef0f8"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef4f5"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/>
+  <circle cx="562" cy="44" r="114" fill="#70b7bc" opacity=".12"/>
+  <circle cx="56" cy="310" r="102" fill="#d8a47e" opacity=".1"/>
+  <rect x="24" y="24" width="592" height="312" rx="22" fill="#ffffff" opacity=".8" stroke="#c9d9dc"/>
+  <rect x="44" y="46" width="552" height="30" rx="9" fill="#e2efee"/>
+  <circle cx="62" cy="61" r="4" fill="#559da0"/>
+  <rect x="78" y="57" width="110" height="8" rx="4" fill="#87b6b5"/>
+  <rect x="204" y="57" width="54" height="8" rx="4" fill="#b2cccd"/>
+  <rect x="44" y="94" width="204" height="218" rx="14" fill="#eaf3f2"/>
+  <circle cx="94" cy="144" r="25" fill="#72b5ad" opacity=".72"/>
+  <rect x="133" y="125" width="82" height="10" rx="5" fill="#71a9aa"/>
+  <rect x="133" y="147" width="58" height="8" rx="4" fill="#abc5c7"/>
+  <rect x="62" y="193" width="160" height="8" rx="4" fill="#a6c4c3"/>
+  <rect x="62" y="214" width="124" height="8" rx="4" fill="#bdd1d1"/>
+  <rect x="62" y="252" width="72" height="8" rx="4" fill="#e0a27b" opacity=".76"/>
+  <rect x="270" y="94" width="326" height="218" rx="14" fill="url(#panel)" stroke="#d6e3e4"/>
+  <rect x="294" y="116" width="140" height="11" rx="5" fill="#559da0" opacity=".82"/>
+  <rect x="294" y="147" width="132" height="73" rx="11" fill="#edf5f4" stroke="#d4e4e3"/>
+  <rect x="312" y="166" width="54" height="11" rx="5.5" fill="#78b9ad"/>
+  <rect x="312" y="188" width="84" height="8" rx="4" fill="#b5cccd"/>
+  <rect x="450" y="147" width="122" height="73" rx="11" fill="#f7f1eb" stroke="#eaded3"/>
+  <path d="M470 192c16-31 26 10 40-15s22-23 37-4 18-4 25-14" fill="none" stroke="#d4936e" stroke-width="4" stroke-linecap="round"/>
+  <rect x="294" y="246" width="94" height="8" rx="4" fill="#b1c9ca"/>
+  <rect x="404" y="246" width="84" height="8" rx="4" fill="#c8d7d7"/>
+  <rect x="504" y="246" width="54" height="8" rx="4" fill="#a9c8c4"/>
+</svg>

@@ -1,0 +1,120 @@
+---
+name: corevia-desk-tests
+version: 0.1.0
+verification:
+  level: full
+  testspec_mode: required
+  source_of_truth: docs/specs/acceptance.fa.md
+definition_of_verified:
+  - The active desktop runtime is Rust plus Nuxt inside a native WebView; Flutter, Dart, and Sciter are excluded from active build, test, installer, and release paths.
+  - Rust Core and src/corevia_acl.rs are the source of truth for system capabilities, approval, and permissions used by Nuxt and MCP.
+  - Full Desk and Customer Support have separate build profiles, application identities, configuration namespaces, and capability boundaries.
+  - Customer Support is inbound-only, fixed to a mobile-like desktop size, and cannot invoke Full Desk outbound operations.
+  - Full Desk connects to an independent current-source endpoint by Peer ID through ID/Relay; IP, RDP, same-network access, old builds, and handshakes are not substitutes.
+  - A P0 pass includes explicit destination approval, Active state, stable live frames, authorized input, clean close, and reconnect, with direct/relay security state read back.
+  - Every screen and interactive control in each macOS/Windows profile has a real product action and verified success, failure/denial, loading, and empty behavior as applicable.
+  - Device history is grouped by normalized Peer ID and shows one latest terminal row without deleting native events; pending or failed connections do not refresh successful-connection time.
+  - Persistence, restart behavior, no duplicate records, concurrent-session ownership, clipboard, RTL/LTR, and responsive layouts pass on current source.
+  - Every displayed Full Desk live-session Toolbox action is tested separately against native execution with safe test data, failure/unsupported feedback, and state readback.
+  - MCP lists only profile-allowed tools, uses the same Rust ACL, requires real per-call approval for sensitive actions, records redacted audit data, and fails closed for denied/unsupported/malformed requests.
+  - CI and Nexus artifacts identify profile, OS, architecture, version, and checksum; versioned artifacts are immutable and read back from Nexus.
+  - Mac signing is optional for continuing; permission-gated shared behavior may use clearly labeled Windows/other-OS proxy evidence. Do not claim direct macOS permission success without proof.
+  - No raw secrets are stored in source, metadata, specs, values, logs, or evidence.
+priority_gates:
+  p0_peer_id_relay_session:
+    order: 1
+    status: open
+    checks:
+      - current-source Full Desk and independent endpoint
+      - connect by Peer ID through configured ID/Relay
+      - destination approval and active session
+      - stable live image and route/security readback
+      - authorized mouse/keyboard input
+      - clean close and reconnect
+  p1_ui_data_toolbox:
+    order: 2
+    status: in_progress
+    checks:
+      - all controls and real actions in four macOS/Windows profile variants
+      - devices, sessions, settings, recents, persistence, restart, and no duplicates
+      - concurrent sessions, clipboard, and every visible Toolbox item
+      - error, empty, loading, unsupported, and permission-denied states
+      - responsive widths and exact RTL/LTR behavior
+  p1_5_install_launch:
+    order: 3
+    status: in_progress
+    checks:
+      - side-by-side Full Desk and Customer Support identity on macOS and Windows
+      - repeated launcher click restores the existing window, with one process per profile
+      - fixed mobile-like Customer Support window; resizable Full Desk window
+      - Windows install and visual UI readback for both profiles
+  p2_mcp:
+    order: 4
+    status: in_progress
+    checks:
+      - every Full Desk tool and each Customer Support-allowed tool
+      - per-call approval, accept/decline/cancel/timeout, audit, and native readback
+      - profile restrictions, malformed-input denial, and no system-command proxy
+  p3_notifications_secret:
+    order: 5
+    status: open
+    checks:
+      - success, warning, danger, and info notifications in both profiles
+      - controlled positive/negative Secret visibility without logging its value
+  p4_ci_nexus:
+    order: 6
+    status: open
+    checks:
+      - current-commit pipeline through Standards and Bridge executors only
+      - native macOS and Windows artifacts for both profiles
+      - immutable Nexus publication and exact checksum/readback
+  p5_linux_docker:
+    order: 7
+    status: deferred_until_desktop_gates
+    checks:
+      - Full Desk Linux and Docker image for the actual server architecture
+      - environment-configurable ID/Relay/server settings and smoke/readback
+  p6_vscode:
+    order: 8
+    status: deferred
+    checks:
+      - future extension only after all delivery gates pass
+commands:
+  standards:
+    run: ruby ../corevia-standards/validators/corevia-standards/validate.rb --target . --check-repo
+  diff:
+    run: git diff --check
+  rust_full_desk:
+    run: cargo test --locked --release --lib
+  rust_customer_support:
+    run: cargo test --locked --release --features corevia-customer-support --lib
+  web_history:
+    run: npm --prefix web run test:history
+  web_lints:
+    run: npm --prefix web run lint:atomic && npm --prefix web run lint:profiles
+  web_generate_full_desk:
+    run: COREVIA_DESK_PROFILE=full-desk npm --prefix web run generate
+  web_generate_customer_support:
+    run: COREVIA_DESK_PROFILE=customer-support npm --prefix web run generate
+  mcp:
+    run: npm --prefix mcp test
+  release_tools:
+    run: npm --prefix release test
+  active_scope:
+    run: npm --prefix release run validate-scope
+evidence:
+  required:
+    - docs/evidence/current-status.md
+    - docs/evidence/current-status.fa.md
+    - docs/evidence/corevia-desk-p1-ui-data.md
+    - docs/evidence/corevia-desk-p1-ui-data.fa.md
+    - docs/evidence/corevia-desk-single-instance.md
+    - docs/evidence/corevia-desk-windows-safe-access-20261008.md
+    - docs/evidence/corevia-desk-windows-winrm-readback-20261008.md
+    - docs/roadmaps/roadmap.md
+    - docs/specs/changelog.md
+  rules:
+    - Record actual native readback and the exact profile/platform/source tested.
+    - Label browser-only and cross-platform proxy evidence; neither proves direct macOS permission.
+    - Never record raw credentials, passwords, server keys, or Secret values.
+    - Keep failed gates open; do not infer completion from a plan, build, or handshake.

@@ -1,0 +1,29 @@
+---
+kind: service
+repo:
+  type: service
+  slug: desk
+  name: Corevia Desk
+  local:
+    path: corevia-desk
+  gitlab:
+    group_path: corevia
+    path: corevia-desk
+    name: Corevia Desk
+  visibility: private
+  branches:
+    default: main
+    develop: develop
+    protected:
+      - main
+      - develop
+source:
+  mode: existing-repo
+  source_of_truth: corevia-desk
+automation:
+  bridge_usecase: service-repo.provision
+  apply_policy: bridge-only
+verification:
+  level: full
+  testspec:
+    mode: required

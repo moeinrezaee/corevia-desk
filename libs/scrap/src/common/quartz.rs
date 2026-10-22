@@ -3,6 +3,39 @@ use std::marker::PhantomData;
 use std::sync::{Arc, Mutex, TryLockError};
 use std::{io, mem};
 
+/// Return the macOS screen-recording decision without showing a permission
+/// prompt. The symbol is resolved at runtime because this API is newer than
+/// the app's declared minimum macOS version.
+pub fn screen_capture_access_granted() -> Option<bool> {
+    let symbol = unsafe {
+        hbb_common::libc::dlsym(
+            hbb_common::libc::RTLD_DEFAULT,
+            b"CGPreflightScreenCaptureAccess\0".as_ptr() as *const _,
+        )
+    };
+    if symbol.is_null() {
+        return None;
+    }
+    let preflight: unsafe extern "C" fn() -> bool = unsafe { mem::transmute(symbol) };
+    Some(unsafe { preflight() })
+}
+
+/// Ask macOS to present its screen-recording permission flow. This must only
+/// be called after an explicit local UI action; it never grants access itself.
+pub fn request_screen_capture_access() -> Option<bool> {
+    let symbol = unsafe {
+        hbb_common::libc::dlsym(
+            hbb_common::libc::RTLD_DEFAULT,
+            b"CGRequestScreenCaptureAccess\0".as_ptr() as *const _,
+        )
+    };
+    if symbol.is_null() {
+        return None;
+    }
+    let request: unsafe extern "C" fn() -> bool = unsafe { mem::transmute(symbol) };
+    Some(unsafe { request() })
+}
+
 pub struct Capturer {
     inner: quartz::Capturer,
     frame: Arc<Mutex<Option<quartz::Frame>>>,

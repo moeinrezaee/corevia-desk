@@ -11,12 +11,46 @@ fn link_pkg_config(name: &str) -> Vec<PathBuf> {
         "libvpx" => "vpx",
         _ => name,
     };
-    let lib = pkg_config::probe_library(pc_name)
-        .expect(format!(
-            "unable to find '{pc_name}' development headers with pkg-config (feature linux-pkg-config is enabled).
-            try installing '{pc_name}-dev' from your system package manager.").as_str());
-
-    lib.include_paths
+    match pkg_config::probe_library(pc_name) {
+        Ok(lib) => lib.include_paths,
+        Err(error) if name == "libyuv" => {
+            // Debian's libyuv-dev package ships the headers and shared library
+            // but does not provide a libyuv.pc file. Keep the normal
+            // pkg-config path for distributions that do provide metadata and
+            // use this exact system layout only as a Linux fallback.
+            let include = PathBuf::from("/usr/include");
+            let library_directories = [
+                PathBuf::from("/usr/lib/x86_64-linux-gnu"),
+                PathBuf::from("/usr/lib/aarch64-linux-gnu"),
+                PathBuf::from("/usr/lib"),
+            ];
+            let library_directory = library_directories
+                .into_iter()
+                .find(|directory| directory.join("libyuv.so").is_file())
+                .unwrap_or_else(|| {
+                    panic!(
+                        "unable to find '{}' development headers/library with pkg-config or the supported Debian system layout: {}",
+                        pc_name, error
+                    )
+                });
+            if !include.join("libyuv.h").is_file() {
+                panic!(
+                    "unable to find '{}' development headers/library with pkg-config or the supported Debian system layout: {}",
+                    pc_name, error
+                );
+            }
+            println!("cargo:rustc-link-lib=dylib=yuv");
+            println!(
+                "cargo:rustc-link-search=native={}",
+                library_directory.display()
+            );
+            vec![include]
+        }
+        Err(error) => panic!(
+            "unable to find '{}' development headers with pkg-config (feature linux-pkg-config is enabled).\n            try installing '{}-dev' from your system package manager: {}",
+            pc_name, pc_name, error
+        ),
+    }
 }
 #[cfg(not(all(target_os = "linux", feature = "linux-pkg-config")))]
 fn link_pkg_config(_name: &str) -> Vec<PathBuf> {
@@ -254,13 +288,13 @@ fn main() {
         // nothing
     } else if target_os == "android" {
         println!("cargo:rustc-cfg=android");
-    } else if cfg!(windows) {
+    } else if target_os == "windows" {
         // The first choice is Windows because DXGI is amazing.
         println!("cargo:rustc-cfg=dxgi");
-    } else if cfg!(target_os = "macos") {
+    } else if target_os == "macos" {
         // Quartz is second because macOS is the (annoying) exception.
         println!("cargo:rustc-cfg=quartz");
-    } else if cfg!(unix) {
+    } else if target_os == "linux" {
         // On UNIX we pray that X11 (with XCB) is available.
         println!("cargo:rustc-cfg=x11");
     }

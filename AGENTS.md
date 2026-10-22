@@ -1,13 +1,62 @@
 # RustDesk Guide
 
+## Corevia Desk delivery lock (authoritative)
+
+- Highest priority is a stable, release-ready Full Desk and Customer Support
+  edition for both macOS and Windows. Do not declare delivery complete until all
+  four profile/platform combinations pass the acceptance matrix.
+- Test every visible UI screen and interactive control against its real product
+  action, including loading, empty, success, and failure states. A visual smoke
+  alone is not functional acceptance.
+- Never silently drop a rejected native-bridge action or show optimistic success;
+  provide localized feedback, preserve the last confirmed state, and test the
+  failure path without fabricating product data.
+- Home recents must represent successful connections, not newly saved address-
+  book entries or pending/closed sessions. Persist the successful connection
+  time, do not advance it while reading disconnected records, and present
+  session history newest-first with its native end time when available.
+- In session history, group terminal events by normalized Peer ID and display
+  only the latest state/end time per device; use address/name only if Peer ID
+  is absent, and keep unidentified session IDs separate. This is a display
+  projection: do not delete the native event records. Use a clear, non-clickable
+  text status, never an X/cross that can look like a close action.
+- For custom-hidden switches, verify that checked, disabled, and keyboard-focus
+  appearances agree with their accessibility state in Full Desk and Customer
+  Support; a correct accessibility value with a visually false switch is a UI
+  failure. When a language change is rejected, render its error in the locale
+  that remains active after rollback.
+- Do not ship an enabled button or menu without a real action. Remove unsupported
+  controls or present them as clearly informational; closing a session tab must
+  request native `close-session`, and a rejected close must leave the session
+  visible and report the failure. Do not present history clearing until the
+  product has a real supported operation for it.
+- Validate real peer-ID connections through ID/Relay first. IP, RDP, or being on
+  the same network is not a substitute.
+- The active interface is Nuxt hosted by the native Rust WebView. Flutter,
+  Dart, and Sciter are outside active build, test, installer, and release scope.
+- After the four macOS/Windows desktop deliverables pass, complete Linux and
+  Docker at lower priority. A VS Code extension is future scope only.
+- Read `docs/evidence/current-status.md`, `docs/handoff/next-context.md`, the
+  acceptance matrix, and the roadmap before resuming. Preserve dirty files and
+  submodules; never reset, stash, or switch away from a dirty primary checkout.
+- Check available disk before builds or image work. Clean only safe,
+  regenerable targets through the declared owner workflow; do not remove
+  user/source data, GitLab/Nexus data, or Docker images/cache without an
+  explicit approved cleanup source.
+- Any GitLab, Nexus, or host mutation must use the latest Corevia Standards
+  decision and the latest Corevia Bridge `connectcore` executor. If a capability
+  is missing, record the exact gap and resolve it through the official pattern;
+  do not use a manual bypass.
+
 ## Project Layout
 
 ### Directory Structure
 * `src/` Rust app
 * `src/server/` audio / clipboard / input / video / network
 * `src/platform/` platform-specific code
-* `src/ui/` legacy Sciter UI (deprecated)
-* `flutter/` current UI
+* `src/ui/` preserved legacy UI sources (not the active UI)
+* `flutter/` historical UI source (outside active scope)
+* `web/` active Nuxt UI, packaged inside the native WebView
 * `libs/hbb_common/` config / proto / shared utils
 * `libs/scrap/` screen capture
 * `libs/enigo/` input control
@@ -22,11 +71,9 @@
 - **File Transfer**: Secure file transfer implementation in `libs/hbb_common/`
 
 ### UI Architecture
-- **Legacy UI**: Sciter-based (deprecated) - files in `src/ui/`
-- **Modern UI**: Flutter-based - files in `flutter/`
-  - Desktop: `flutter/lib/desktop/`
-  - Mobile: `flutter/lib/mobile/`
-  - Shared: `flutter/lib/common/` and `flutter/lib/models/`
+- **Active UI**: Nuxt in `web/`, loaded and governed by the native Rust WebView.
+- **Preserved UI**: Sciter/Flutter sources remain historical references only;
+  do not add them to active build, test, installer, or release paths.
 
 ## Rust Rules
 

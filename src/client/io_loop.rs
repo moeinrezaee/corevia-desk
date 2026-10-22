@@ -1353,6 +1353,7 @@ impl<T: InvokeUiSession> Remote<T> {
                     }
                 }
                 Some(message::Union::Hash(hash)) => {
+                    log::debug!("Corevia native client received remote login challenge");
                     if !self
                         .handler
                         .handle_hash(&self.handler.password.clone(), hash, peer)
@@ -1363,6 +1364,7 @@ impl<T: InvokeUiSession> Remote<T> {
                 }
                 Some(message::Union::LoginResponse(lr)) => match lr.union {
                     Some(login_response::Union::Error(err)) => {
+                        log::debug!("Corevia native client received login response error: {}", err);
                         if err == client::REQUIRE_2FA {
                             self.handler.lc.write().unwrap().enable_trusted_devices =
                                 lr.enable_trusted_devices;
@@ -1372,9 +1374,15 @@ impl<T: InvokeUiSession> Remote<T> {
                         }
                     }
                     Some(login_response::Union::PeerInfo(pi)) => {
+                        log::debug!(
+                            "Corevia native client received peer info: platform={}, displays={}",
+                            &pi.platform,
+                            pi.displays.len()
+                        );
                         let peer_version = pi.version.clone();
                         let peer_platform = pi.platform.clone();
                         self.set_peer_info(&pi);
+                        self.handler.set_peer_info(&pi);
                         if self.handler.is_view_camera() {
                             if !self.check_view_camera_support(&peer_version, &peer_platform) {
                                 self.handler.lc.write().unwrap().handle_peer_info(&pi);

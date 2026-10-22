@@ -1385,6 +1385,7 @@ impl Connection {
         let mut msg_out = Message::new();
         msg_out.set_hash(self.hash.clone());
         self.send(msg_out).await;
+        log::debug!("#{} initial hash queued for the remote client", self.inner.id);
         self.get_api_server();
         let mut audit = json!({
             "ip": addr.ip(),
@@ -2187,6 +2188,12 @@ impl Connection {
     }
 
     fn try_start_cm(&mut self, peer_id: String, name: String, authorized: bool) {
+        log::debug!(
+            "#{} handing incoming login to connection manager: peer_id={}, authorized={}",
+            self.inner.id,
+            peer_id,
+            authorized
+        );
         self.send_to_cm(ipc::Data::Login {
             id: self.inner.id(),
             is_file_transfer: self.file_transfer.is_some(),
@@ -2208,6 +2215,10 @@ impl Connection {
             privacy_mode: self.privacy_mode,
             from_switch: self.from_switch,
         });
+        log::debug!(
+            "#{} queued incoming login for connection manager IPC",
+            self.inner.id
+        );
     }
 
     #[inline]
@@ -2480,11 +2491,25 @@ impl Connection {
         )
     }
 
+    fn profile_allows_connection_permission(enable_prefix_option: &str) -> bool {
+        !cfg!(feature = "corevia-customer-support")
+            || !matches!(
+                enable_prefix_option,
+                keys::OPTION_ENABLE_KEYBOARD
+                    | keys::OPTION_ENABLE_CLIPBOARD
+                    | keys::OPTION_ENABLE_AUDIO
+                    | keys::OPTION_ENABLE_FILE_TRANSFER
+            )
+    }
+
     fn permission(
         enable_prefix_option: &str,
         control_permissions: &Option<ControlPermissions>,
     ) -> bool {
         use hbb_common::rendezvous_proto::control_permissions::Permission;
+        if !Self::profile_allows_connection_permission(enable_prefix_option) {
+            return false;
+        }
         if let Some(control_permissions) = control_permissions {
             let permission = match enable_prefix_option {
                 keys::OPTION_ENABLE_KEYBOARD => Some(Permission::keyboard),
@@ -2651,6 +2676,10 @@ impl Connection {
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     fn try_start_cm_ipc(&mut self) {
         if let Some(p) = self.start_cm_ipc_para.take() {
+            log::debug!(
+                "#{} starting connection manager IPC bootstrap",
+                self.inner.id
+            );
             tokio::spawn(async move {
                 #[cfg(windows)]
                 let tx_from_cm_clone = p.tx_from_cm.clone();
@@ -2695,6 +2724,13 @@ impl Connection {
         }
         // After handling CloseReason messages, proceed to process other message types
         if let Some(message::Union::LoginRequest(lr)) = msg.union {
+            log::debug!(
+                "#{} received login request: peer_id={}, version={}, has_password={}",
+                self.inner.id,
+                &lr.my_id,
+                &lr.version,
+                !lr.password.is_empty()
+            );
             if !self.check_login_scope(&lr).await {
                 return false;
             }
@@ -4660,6 +4696,23 @@ impl Connection {
     }
 
     async fn update_options(&mut self, o: &OptionMessage) {
+        let keyboard_permission_updated = o
+            .disable_keyboard
+            .enum_value()
+            .is_ok_and(|value| value != BoolOption::NotSet);
+        let clipboard_permission_updated = o
+            .disable_clipboard
+            .enum_value()
+            .is_ok_and(|value| value != BoolOption::NotSet);
+        let audio_permission_updated = o
+            .disable_audio
+            .enum_value()
+            .is_ok_and(|value| value != BoolOption::NotSet);
+        let file_permission_updated = o
+            .enable_file_transfer
+            .enum_value()
+            .is_ok_and(|value| value != BoolOption::NotSet);
+
         log::info!("Option update: {:?}", o);
         if let Ok(q) = o.image_quality.enum_value() {
             let image_quality;
@@ -4731,7 +4784,8 @@ impl Connection {
         }
         if let Ok(q) = o.disable_audio.enum_value() {
             if q != BoolOption::NotSet {
-                self.disable_audio = q == BoolOption::Yes;
+                self.disable_audio = q == BoolOption::Yes
+                    || !Self::profile_allows_connection_permission(keys::OPTION_ENABLE_AUDIO);
                 if let Some(s) = self.server.upgrade() {
                     if self.is_authed_view_camera_conn() {
                         if self.voice_calling || !self.audio_enabled() {
@@ -4754,7 +4808,10 @@ impl Connection {
         #[cfg(any(target_os = "windows", feature = "unix-file-copy-paste"))]
         if let Ok(q) = o.enable_file_transfer.enum_value() {
             if q != BoolOption::NotSet {
-                self.enable_file_transfer = q == BoolOption::Yes;
+                self.enable_file_transfer = q == BoolOption::Yes
+                    && Self::profile_allows_connection_permission(
+                        keys::OPTION_ENABLE_FILE_TRANSFER,
+                    );
                 #[cfg(target_os = "windows")]
                 self.send_to_cm(ipc::Data::ClipboardFileEnabled(
                     self.file_transfer_enabled(),
@@ -4775,7 +4832,10 @@ impl Connection {
         }
         if let Ok(q) = o.disable_clipboard.enum_value() {
             if q != BoolOption::NotSet {
-                self.disable_clipboard = q == BoolOption::Yes;
+                self.disable_clipboard = q == BoolOption::Yes
+                    || !Self::profile_allows_connection_permission(
+                        keys::OPTION_ENABLE_CLIPBOARD,
+                    );
                 if let Some(s) = self.server.upgrade() {
                     s.write().unwrap().subscribe(
                         super::clipboard_service::NAME,
@@ -4899,6 +4959,25 @@ impl Connection {
                     }
                 }
             }
+        }
+
+        if keyboard_permission_updated {
+            self.send_permission(Permission::Keyboard, self.peer_keyboard_enabled())
+                .await;
+        }
+        if clipboard_permission_updated {
+            self.send_permission(Permission::Clipboard, self.clipboard_enabled())
+                .await;
+        }
+        if audio_permission_updated {
+            self.send_permission(Permission::Audio, self.audio_enabled()).await;
+        }
+        if file_permission_updated {
+            #[cfg(any(target_os = "windows", feature = "unix-file-copy-paste"))]
+            let enabled = self.file_transfer_enabled();
+            #[cfg(not(any(target_os = "windows", feature = "unix-file-copy-paste")))]
+            let enabled = self.file;
+            self.send_permission(Permission::File, enabled).await;
         }
     }
 
@@ -6098,17 +6177,27 @@ async fn start_ipc(
 ) -> ResultType<()> {
     use hbb_common::anyhow::anyhow;
 
-    loop {
-        if !crate::platform::is_prelogin() {
-            break;
-        }
-        sleep(1.).await;
-    }
     let mut stream = None;
-    if let Ok(s) = crate::ipc::connect(1000, "_cm").await {
-        stream = Some(s);
+    match crate::ipc::connect(1000, "_cm").await {
+        Ok(s) => {
+            log::debug!("connection manager IPC connected to existing listener");
+            stream = Some(s);
+        }
+        Err(err) => {
+            log::debug!("connection manager IPC initial connect failed: {}", err);
+        }
     }
     if stream.is_none() {
+        // A native WebView/MCP connection manager can already be running as a
+        // service-side process while Windows is still reporting the desktop as
+        // pre-login. Prefer that listener immediately; only wait before
+        // falling back to launching the legacy user-session CM.
+        loop {
+            if !crate::platform::is_prelogin() {
+                break;
+            }
+            sleep(1.).await;
+        }
         let args = vec!["--cm"];
         let run_done;
         if crate::platform::is_root() {
@@ -6147,6 +6236,7 @@ async fn start_ipc(
         for _ in 0..20 {
             sleep(0.3).await;
             if let Ok(s) = crate::ipc::connect(1000, "_cm").await {
+                log::debug!("connection manager IPC connected after bootstrap");
                 stream = Some(s);
                 break;
             }
@@ -6206,6 +6296,7 @@ async fn start_ipc(
                                 stream.send(&Data::FS(ipc::FS::WriteBlock{id, file_num, data: Bytes::new(), compressed})).await?;
                                 stream.send_raw(data).await?;
                         } else {
+                            log::debug!("connection manager IPC forwarding queued data to UI");
                             stream.send(&data).await?;
                         }
                     }
@@ -6888,6 +6979,27 @@ fn wildcard_match(pattern: &str, text: &str) -> bool {
 mod test {
     #[allow(unused)]
     use super::*;
+
+    #[test]
+    fn customer_support_profile_limits_remote_session_permissions() {
+        let restricted = [
+            keys::OPTION_ENABLE_KEYBOARD,
+            keys::OPTION_ENABLE_CLIPBOARD,
+            keys::OPTION_ENABLE_AUDIO,
+            keys::OPTION_ENABLE_FILE_TRANSFER,
+        ];
+
+        for permission in restricted {
+            assert_eq!(
+                Connection::profile_allows_connection_permission(permission),
+                !cfg!(feature = "corevia-customer-support"),
+                "unexpected profile policy for {permission}"
+            );
+        }
+        assert!(Connection::profile_allows_connection_permission(
+            keys::OPTION_ENABLE_REMOTE_RESTART
+        ));
+    }
 
     #[cfg(feature = "flutter")]
     #[cfg(not(any(target_os = "android", target_os = "ios")))]

@@ -7,6 +7,10 @@ use std::{
     sync::{Arc, Mutex},
     time::Duration,
 };
+#[cfg(target_os = "macos")]
+use std::sync::atomic::{AtomicI64, Ordering};
+#[cfg(target_os = "macos")]
+use cocoa::{appkit::NSPasteboard, base::{id, nil}};
 
 pub const CLIPBOARD_NAME: &'static str = "clipboard";
 #[cfg(feature = "unix-file-copy-paste")]
@@ -26,6 +30,20 @@ pub fn is_sync_clipboard_between_sessions_enabled() -> bool {
 
 // This format is used to store the flag in the clipboard.
 const RUSTDESK_CLIPBOARD_OWNER_FORMAT: &'static str = "dyn.com.rustdesk.owner";
+
+#[cfg(target_os = "macos")]
+// macOS applications may preserve RustDesk's owner marker when replacing text.
+// The pasteboard change count distinguishes that user edit from the last remote write.
+static LAST_MACOS_CLIPBOARD_CHANGE_COUNT: AtomicI64 = AtomicI64::new(-1);
+
+#[cfg(target_os = "macos")]
+fn macos_clipboard_change_count() -> Option<i64> {
+    let pasteboard: id = unsafe { NSPasteboard::generalPasteboard(nil) };
+    if pasteboard == nil {
+        return None;
+    }
+    Some(unsafe { pasteboard.changeCount() })
+}
 
 // Add special format for Excel XML Spreadsheet
 const CLIPBOARD_FORMAT_EXCEL_XML_SPREADSHEET: &'static str = "XML Spreadsheet";
@@ -276,6 +294,10 @@ fn do_update_clipboard_(mut to_update_data: Vec<ClipboardData>, side: ClipboardS
         if let Err(e) = ctx.set(&to_update_data) {
             log::debug!("Failed to set clipboard: {}", e);
         } else {
+            #[cfg(target_os = "macos")]
+            if let Some(change_count) = macos_clipboard_change_count() {
+                LAST_MACOS_CLIPBOARD_CHANGE_COUNT.store(change_count, Ordering::SeqCst);
+            }
             log::debug!("{} updated on {}", CLIPBOARD_NAME, side);
         }
     }
@@ -413,9 +435,22 @@ impl ClipboardContext {
             for c in data.iter() {
                 if let ClipboardData::Special((s, d)) = c {
                     if s == RUSTDESK_CLIPBOARD_OWNER_FORMAT && side.is_owner(d) {
+                        #[cfg(not(target_os = "macos"))]
                         return Ok(vec![]);
+                        #[cfg(target_os = "macos")]
+                        if macos_clipboard_change_count()
+                            == Some(LAST_MACOS_CLIPBOARD_CHANGE_COUNT.load(Ordering::SeqCst))
+                        {
+                            return Ok(vec![]);
+                        }
                     }
                 }
+            }
+        }
+        #[cfg(target_os = "macos")]
+        if !force {
+            if let Some(change_count) = macos_clipboard_change_count() {
+                LAST_MACOS_CLIPBOARD_CHANGE_COUNT.store(change_count, Ordering::SeqCst);
             }
         }
         Ok(data
@@ -607,10 +642,28 @@ impl ClipboardSide {
     }
 
     fn is_owner(&self, data: &[u8]) -> bool {
-        if data.len() == 0 {
-            return false;
-        }
-        data[0] & 0b11 != 0
+        let expected = match self {
+            ClipboardSide::Host => 0b01,
+            ClipboardSide::Client => 0b10,
+        };
+        data.first()
+            .map(|value| value & 0b11 == expected)
+            .unwrap_or(false)
+    }
+}
+
+#[cfg(test)]
+mod tests {
+    use super::ClipboardSide;
+
+    #[test]
+    fn clipboard_owner_marker_is_side_specific() {
+        assert!(ClipboardSide::Host.is_owner(&[0b01]));
+        assert!(!ClipboardSide::Host.is_owner(&[0b10]));
+        assert!(!ClipboardSide::Host.is_owner(&[]));
+        assert!(!ClipboardSide::Client.is_owner(&[0b01]));
+        assert!(ClipboardSide::Client.is_owner(&[0b10]));
+        assert!(!ClipboardSide::Client.is_owner(&[0b00]));
     }
 }
 

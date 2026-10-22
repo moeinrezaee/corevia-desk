@@ -1,0 +1,6 @@
+---
+validators:
+  - name: corevia-standards
+    command: ruby ../corevia-standards/validators/corevia-standards/validate.rb --target . --check-repo
+  - name: git-diff-check
+    command: git diff --check

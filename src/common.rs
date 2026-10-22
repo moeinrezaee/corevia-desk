@@ -38,6 +38,7 @@ use hbb_common::{
 };
 
 use crate::{
+    branding,
     hbbs_http::{create_http_client_async, get_url_for_tls},
     ui_interface::{get_api_server as ui_get_api_server, get_option, is_installed, set_option},
 };
@@ -51,6 +52,10 @@ pub enum GrabState {
 }
 
 pub type NotifyMessageBox = fn(String, String, String, String) -> dyn Future<Output = ()>;
+
+pub fn initialize_app_identity() {
+    branding::initialize();
+}
 
 // the executable name of the portable version
 pub const PORTABLE_APPNAME_RUNTIME_ENV_KEY: &str = "RUSTDESK_APPNAME";
@@ -122,6 +127,7 @@ impl Drop for SimpleCallOnReturn {
 }
 
 pub fn global_init() -> bool {
+    initialize_app_identity();
     #[cfg(all(target_os = "linux", feature = "drm"))]
     crate::platform::linux::dispatch_wayland_display_probe();
     #[cfg(target_os = "linux")]
@@ -1068,7 +1074,13 @@ pub fn is_rustdesk() -> bool {
 
 #[inline]
 pub fn get_uri_prefix() -> String {
-    format!("{}://", get_app_name().to_lowercase())
+    let app_name = get_app_name();
+    let scheme = if app_name == branding::APP_NAME {
+        branding::APP_URI_SCHEME.to_owned()
+    } else {
+        app_name.replace(' ', "-").to_lowercase()
+    };
+    format!("{scheme}://")
 }
 
 #[cfg(target_os = "macos")]
@@ -1076,7 +1088,7 @@ pub fn get_full_name() -> String {
     format!(
         "{}.{}",
         hbb_common::config::ORG.read().unwrap(),
-        hbb_common::config::APP_NAME.read().unwrap(),
+        branding::app_bundle_name(),
     )
 }
 
@@ -1934,7 +1946,7 @@ pub async fn get_key(sync: bool) -> String {
         options.remove("key").unwrap_or_default()
     };
     if key.is_empty() {
-        key = config::RS_PUB_KEY.to_owned();
+        key = branding::DEFAULT_SERVER_KEY.to_owned();
     }
     key
 }
@@ -2397,7 +2409,8 @@ pub fn get_builtin_option(key: &str) -> String {
 
 #[inline]
 pub fn is_custom_client() -> bool {
-    get_app_name() != "RustDesk"
+    let app_name = get_app_name();
+    app_name != "RustDesk" && app_name != branding::APP_NAME
 }
 
 pub fn verify_login(_raw: &str, _id: &str) -> bool {

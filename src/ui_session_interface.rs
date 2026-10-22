@@ -1784,6 +1784,14 @@ impl<T: InvokeUiSession> Interface for Session<T> {
 
     fn handle_peer_info(&self, mut pi: PeerInfo) {
         log::debug!("handle_peer_info :{:?}", pi);
+        let conn_type = self.lc.read().unwrap().conn_type;
+        let is_file_transfer = conn_type == ConnType::FILE_TRANSFER;
+        log::debug!(
+            "Corevia native session peer routing: conn_type={:?}, file_transfer={}, displays={}",
+            conn_type,
+            is_file_transfer,
+            pi.displays.len()
+        );
         self.lc.write().unwrap().peer_info = Some(pi.clone());
         if pi.current_display as usize >= pi.displays.len() {
             pi.current_display = 0;
@@ -1791,7 +1799,7 @@ impl<T: InvokeUiSession> Interface for Session<T> {
         if get_version_number(&pi.version) < get_version_number("1.1.10") {
             self.set_permission("restart", false);
         }
-        if self.is_file_transfer() {
+        if is_file_transfer {
             if pi.username.is_empty() && pi.windows_sessions.sessions.is_empty() {
                 self.on_error("No active console user logged on, please connect and logon first.");
                 return;
@@ -1832,7 +1840,7 @@ impl<T: InvokeUiSession> Interface for Session<T> {
         // Save recent peers, then push event to flutter. So flutter can refresh peer page.
         self.lc.write().unwrap().handle_peer_info(&pi);
         self.set_peer_info(&pi);
-        if self.is_file_transfer() {
+        if is_file_transfer {
             self.close_success();
         } else if !self.is_port_forward() && !self.is_terminal() {
             self.msgbox(

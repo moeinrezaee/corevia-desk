@@ -1,8 +1,41 @@
-#[cfg(windows)]
+fn generate_version() {
+    println!("cargo:rerun-if-env-changed=COREVIA_DESK_VERSION");
+    hbb_common::gen_version();
+
+    if let Ok(version) = std::env::var("COREVIA_DESK_VERSION") {
+        let generated = std::fs::read_to_string("src/version.rs")
+            .expect("the Rust version file should have been generated");
+        let build_metadata = generated
+            .split_once('\n')
+            .map(|(_, rest)| rest)
+            .unwrap_or_default();
+        let source = format!("pub const VERSION: &str = {version:?};\n{build_metadata}");
+        std::fs::write("src/version.rs", source)
+            .expect("the release version should be written to the Rust version file");
+    }
+}
+
 fn build_windows() {
+    let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+    if target_os != "windows" {
+        return;
+    }
+
     let file = "src/platform/windows.cc";
     let file2 = "src/platform/windows_delete_test_cert.cc";
-    cc::Build::new().file(file).file(file2).compile("windows");
+    let mut build = cc::Build::new();
+    println!("cargo:rerun-if-env-changed=COREVIA_CROSS_AR");
+    println!("cargo:rerun-if-env-changed=COREVIA_CROSS_RANLIB");
+    if let Ok(archiver) = std::env::var("COREVIA_CROSS_AR") {
+        build.archiver(archiver);
+    }
+    if let Ok(ranlib) = std::env::var("COREVIA_CROSS_RANLIB") {
+        build.ranlib(ranlib);
+    }
+    if std::env::var("CARGO_CFG_TARGET_ENV").as_deref() != Ok("msvc") {
+        build.flag("-Wno-c++11-narrowing");
+    }
+    build.file(file).file(file2).compile("windows");
     println!("cargo:rustc-link-lib=WtsApi32");
     println!("cargo:rerun-if-changed={}", file);
     println!("cargo:rerun-if-changed={}", file2);
@@ -22,24 +55,22 @@ fn build_mac() {
     println!("cargo:rerun-if-changed={}", file);
 }
 
-#[cfg(all(windows, feature = "inline"))]
+#[cfg(windows)]
 fn build_manifest() {
     use std::io::Write;
-    if std::env::var("PROFILE").unwrap() == "release" {
-        let mut res = winres::WindowsResource::new();
-        res.set_icon("res/icon.ico")
-            .set_language(winapi::um::winnt::MAKELANGID(
-                winapi::um::winnt::LANG_ENGLISH,
-                winapi::um::winnt::SUBLANG_ENGLISH_US,
-            ))
-            .set_manifest_file("res/manifest.xml");
-        match res.compile() {
-            Err(e) => {
-                write!(std::io::stderr(), "{}", e).unwrap();
-                std::process::exit(1);
-            }
-            Ok(_) => {}
+    let mut res = winres::WindowsResource::new();
+    res.set_icon("res/icon.ico")
+        .set_language(winapi::um::winnt::MAKELANGID(
+            winapi::um::winnt::LANG_ENGLISH,
+            winapi::um::winnt::SUBLANG_ENGLISH_US,
+        ))
+        .set_manifest_file("res/manifest.xml");
+    match res.compile() {
+        Err(e) => {
+            write!(std::io::stderr(), "{}", e).unwrap();
+            std::process::exit(1);
         }
+        Ok(_) => {}
     }
 }
 
@@ -77,13 +108,14 @@ fn install_android_deps() {
 }
 
 fn main() {
-    hbb_common::gen_version();
+    generate_version();
     install_android_deps();
-    #[cfg(all(windows, feature = "inline"))]
-    build_manifest();
-    #[cfg(windows)]
-    build_windows();
     let target_os = std::env::var("CARGO_CFG_TARGET_OS").unwrap();
+    if target_os == "windows" {
+        build_windows();
+        #[cfg(windows)]
+        build_manifest();
+    }
     if target_os == "macos" {
         #[cfg(target_os = "macos")]
         build_mac();

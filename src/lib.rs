@@ -1,4 +1,5 @@
 mod keyboard;
+pub mod branding;
 /// cbindgen:ignore
 pub mod platform;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
@@ -19,6 +20,8 @@ mod rendezvous_mediator;
 pub use self::rendezvous_mediator::*;
 /// cbindgen:ignore
 pub mod common;
+pub mod corevia_acl;
+pub mod corevia_bridge;
 #[cfg(not(any(target_os = "ios")))]
 pub mod ipc;
 #[cfg(not(any(
@@ -55,8 +58,20 @@ mod whiteboard;
 #[cfg(not(any(target_os = "android", target_os = "ios")))]
 mod updater;
 
-mod ui_cm_interface;
-mod ui_interface;
+#[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+pub mod webview;
+
+#[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+pub mod single_instance;
+
+#[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+pub(crate) mod webview_session;
+
+#[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+pub(crate) mod webview_cm;
+
+pub(crate) mod ui_cm_interface;
+pub(crate) mod ui_interface;
 mod ui_session_interface;
 
 mod hbbs_http;

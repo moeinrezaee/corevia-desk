@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Light developer desktop preview</title>
+  <desc id="desc">A calm light development workspace with a terminal and status panel.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#eef8f5"/>
+      <stop offset="1" stop-color="#e9f0f6"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f9fcfb"/>
+      <stop offset="1" stop-color="#e5eef1"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/>
+  <circle cx="555" cy="42" r="108" fill="#49b28d" opacity=".12"/>
+  <circle cx="94" cy="332" r="96" fill="#8ebbd0" opacity=".12"/>
+  <rect x="24" y="24" width="592" height="312" rx="22" fill="#ffffff" opacity=".78" stroke="#b7d2d4"/>
+  <rect x="44" y="46" width="552" height="30" rx="9" fill="#e0eeeb"/>
+  <circle cx="62" cy="61" r="4" fill="#3ca781"/>
+  <rect x="78" y="57" width="92" height="8" rx="4" fill="#7aa9a5"/>
+  <rect x="190" y="57" width="60" height="8" rx="4" fill="#a7c3c5"/>
+  <rect x="44" y="94" width="174" height="218" rx="14" fill="#e7f2f0"/>
+  <rect x="62" y="116" width="108" height="10" rx="5" fill="#5da493" opacity=".88"/>
+  <rect x="62" y="143" width="126" height="8" rx="4" fill="#9db9bb"/>
+  <rect x="62" y="162" width="99" height="8" rx="4" fill="#b2c9ca"/>
+  <rect x="62" y="181" width="115" height="8" rx="4" fill="#b2c9ca"/>
+  <rect x="62" y="223" width="72" height="8" rx="4" fill="#4aa987" opacity=".78"/>
+  <rect x="62" y="242" width="108" height="8" rx="4" fill="#a9c4c5"/>
+  <rect x="62" y="261" width="88" height="8" rx="4" fill="#a9c4c5"/>
+  <rect x="238" y="94" width="358" height="218" rx="14" fill="url(#panel)" stroke="#d0e0e1"/>
+  <rect x="260" y="116" width="176" height="12" rx="6" fill="#4aa987" opacity=".82"/>
+  <rect x="260" y="145" width="292" height="8" rx="4" fill="#8aa9ad"/>
+  <rect x="260" y="164" width="248" height="8" rx="4" fill="#b0c5c7"/>
+  <rect x="260" y="198" width="282" height="70" rx="12" fill="#f3f8f7" stroke="#d4e5e3"/>
+  <path d="M282 234h42l18-22 22 13 28-30 26 22 26-10 27 22 26-26 22 15 20-8" fill="none" stroke="#4aa987" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity=".82"/>
+  <rect x="260" y="282" width="106" height="8" rx="4" fill="#b0c5c7"/>
+  <rect x="378" y="282" width="74" height="8" rx="4" fill="#71b69f" opacity=".7"/>
+</svg>

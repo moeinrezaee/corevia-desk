@@ -226,17 +226,20 @@ pub async fn create_tcp_connection(
             ..Default::default()
         });
         timeout(CONNECT_TIMEOUT, stream.send(&msg_out)).await??;
+        log::debug!("Server sent signed handshake to peer");
         match timeout(CONNECT_TIMEOUT, stream.next()).await? {
             Some(res) => {
                 let bytes = res?;
                 if let Ok(msg_in) = Message::parse_from_bytes(&bytes) {
                     if let Some(message::Union::PublicKey(pk)) = msg_in.union {
+                        log::debug!("Server received peer public handshake");
                         if pk.asymmetric_value.len() == box_::PUBLICKEYBYTES {
                             stream.set_key(tcp::Encrypt::decode(
                                 &pk.symmetric_value,
                                 &pk.asymmetric_value,
                                 &our_sk_b,
                             )?);
+                            log::debug!("Server completed secure handshake");
                         } else if pk.asymmetric_value.is_empty() {
                             Config::set_key_confirmed(false);
                             log::info!("Force to update pk");

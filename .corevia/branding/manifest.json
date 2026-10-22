@@ -1,0 +1,809 @@
+{
+ "version": 1,
+ "ops": [
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/AudioRecordHandle.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/AudioRecordHandle.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/AudioRecordHandle.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport ffi.FFI\n\n",
+     "new": "package com.corevia.desk\n\nimport ffi.FFI\n\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/BootReceiver.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/BootReceiver.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/BootReceiver.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport android.Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS\nimport android.Manifest.permission.SYSTEM_ALERT_WINDOW\n",
+     "new": "package com.corevia.desk\n\nimport android.Manifest.permission.REQUEST_IGNORE_BATTERY_OPTIMIZATIONS\nimport android.Manifest.permission.SYSTEM_ALERT_WINDOW\n"
+    },
+    {
+     "old": "import com.hjq.permissions.XXPermissions\nimport io.flutter.embedding.android.FlutterActivity\n\nconst val DEBUG_BOOT_COMPLETED = \"com.carriez.flutter_hbb.DEBUG_BOOT_COMPLETED\"\n\nclass BootReceiver : BroadcastReceiver() {\n    private val logTag = \"tagBootReceiver\"\n",
+     "new": "import com.hjq.permissions.XXPermissions\nimport io.flutter.embedding.android.FlutterActivity\n\nconst val DEBUG_BOOT_COMPLETED = \"com.corevia.desk.DEBUG_BOOT_COMPLETED\"\n\nclass BootReceiver : BroadcastReceiver() {\n    private val logTag = \"tagBootReceiver\"\n"
+    },
+    {
+     "old": "                action = ACT_INIT_MEDIA_PROJECTION_AND_SERVICE\n                putExtra(EXT_INIT_FROM_BOOT, true)\n            }\n            Toast.makeText(context, \"RustDesk is Open\", Toast.LENGTH_LONG).show()\n            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {\n                context.startForegroundService(it)\n            } else {\n",
+     "new": "                action = ACT_INIT_MEDIA_PROJECTION_AND_SERVICE\n                putExtra(EXT_INIT_FROM_BOOT, true)\n            }\n            Toast.makeText(context, \"Corevia Desk is Open\", Toast.LENGTH_LONG).show()\n            if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {\n                context.startForegroundService(it)\n            } else {\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/FloatingWindowService.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/FloatingWindowService.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/FloatingWindowService.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport android.annotation.SuppressLint\nimport android.app.PendingIntent\n",
+     "new": "package com.corevia.desk\n\nimport android.annotation.SuppressLint\nimport android.app.PendingIntent\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/InputService.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/InputService.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/InputService.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\n/**\n * Handle remote input and dispatch android gesture\n",
+     "new": "package com.corevia.desk\n\n/**\n * Handle remote input and dispatch android gesture\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/KeyboardKeyEventMapper.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/KeyboardKeyEventMapper.kt"
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/MainActivity.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/MainActivity.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/MainActivity.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\n/**\n * Handle events from flutter\n",
+     "new": "package com.corevia.desk\n\n/**\n * Handle events from flutter\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/MainApplication.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/MainApplication.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/MainApplication.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport android.app.Application\nimport android.util.Log\n",
+     "new": "package com.corevia.desk\n\nimport android.app.Application\nimport android.util.Log\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/MainService.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/MainService.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/MainService.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport ffi.FFI\n\n",
+     "new": "package com.corevia.desk\n\nimport ffi.FFI\n\n"
+    },
+    {
+     "old": "import kotlin.math.max\nimport kotlin.math.min\n\nconst val DEFAULT_NOTIFY_TITLE = \"RustDesk\"\nconst val DEFAULT_NOTIFY_TEXT = \"Service is running\"\nconst val DEFAULT_NOTIFY_ID = 1\nconst val NOTIFY_ID_OFFSET = 100\n",
+     "new": "import kotlin.math.max\nimport kotlin.math.min\n\nconst val DEFAULT_NOTIFY_TITLE = \"Corevia Desk\"\nconst val DEFAULT_NOTIFY_TEXT = \"Service is running\"\nconst val DEFAULT_NOTIFY_ID = 1\nconst val NOTIFY_ID_OFFSET = 100\n"
+    },
+    {
+     "old": "    private fun initNotification() {\n        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager\n        notificationChannel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {\n            val channelId = \"RustDesk\"\n            val channelName = \"RustDesk Service\"\n            val channel = NotificationChannel(\n                channelId,\n                channelName, NotificationManager.IMPORTANCE_HIGH\n            ).apply {\n                description = \"RustDesk Service Channel\"\n            }\n            channel.lightColor = Color.BLUE\n            channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE\n",
+     "new": "    private fun initNotification() {\n        notificationManager = getSystemService(Context.NOTIFICATION_SERVICE) as NotificationManager\n        notificationChannel = if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.O) {\n            val channelId = \"CoreviaDesk\"\n            val channelName = \"Corevia Desk Service\"\n            val channel = NotificationChannel(\n                channelId,\n                channelName, NotificationManager.IMPORTANCE_HIGH\n            ).apply {\n                description = \"Corevia Desk Service Channel\"\n            }\n            channel.lightColor = Color.BLUE\n            channel.lockscreenVisibility = Notification.VISIBILITY_PRIVATE\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/PermissionRequestTransparentActivity.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/PermissionRequestTransparentActivity.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/PermissionRequestTransparentActivity.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport android.app.Activity\nimport android.content.Intent\n",
+     "new": "package com.corevia.desk\n\nimport android.app.Activity\nimport android.content.Intent\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/RdClipboardManager.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/RdClipboardManager.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/RdClipboardManager.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport java.nio.ByteBuffer\nimport java.util.Timer\n",
+     "new": "package com.corevia.desk\n\nimport java.nio.ByteBuffer\nimport java.util.Timer\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/VolumeController.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/VolumeController.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/VolumeController.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\n// Inspired by https://github.com/yosemiteyss/flutter_volume_controller/blob/main/android/src/main/kotlin/com/yosemiteyss/flutter_volume_controller/VolumeController.kt\n\n",
+     "new": "package com.corevia.desk\n\n// Inspired by https://github.com/yosemiteyss/flutter_volume_controller/blob/main/android/src/main/kotlin/com/yosemiteyss/flutter_volume_controller/VolumeController.kt\n\n"
+    }
+   ]
+  },
+  {
+   "op": "move",
+   "from": "flutter/android/app/src/main/kotlin/com/carriez/flutter_hbb/common.kt",
+   "to": "flutter/android/app/src/main/kotlin/com/corevia/desk/common.kt"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/com/corevia/desk/common.kt",
+   "hunks": [
+    {
+     "old": "package com.carriez.flutter_hbb\n\nimport android.Manifest.permission.*\nimport android.annotation.SuppressLint\n",
+     "new": "package com.corevia.desk\n\nimport android.Manifest.permission.*\nimport android.annotation.SuppressLint\n"
+    }
+   ]
+  },
+  {
+   "op": "delete",
+   "path": "flutter/android/flutter_hbb_android.iml"
+  },
+  {
+   "op": "delete",
+   "path": "libs/enigo/.vscode/launch.json"
+  },
+  {
+   "op": "replace",
+   "path": "flutter/README.md",
+   "hunks": [
+    {
+     "old": "# flutter_hbb\n\nA new Flutter project.\n\n",
+     "new": "# Corevia Desk Flutter client\n\nA new Flutter project.\n\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/build.gradle",
+   "hunks": [
+    {
+     "old": "}\n\nandroid {\n    namespace \"com.carriez.flutter_hbb\"\n    compileSdkVersion 36\n    sourceSets {\n        main.java.srcDirs += 'src/main/kotlin'\n",
+     "new": "}\n\nandroid {\n    namespace \"com.corevia.desk\"\n    compileSdkVersion 36\n    sourceSets {\n        main.java.srcDirs += 'src/main/kotlin'\n"
+    },
+    {
+     "old": "\n    defaultConfig {\n        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).\n        applicationId \"com.carriez.flutter_hbb\"\n        minSdkVersion 22\n        targetSdkVersion 36\n        versionCode flutterVersionCode.toInteger()\n",
+     "new": "\n    defaultConfig {\n        // TODO: Specify your own unique Application ID (https://developer.android.com/studio/build/application-id.html).\n        applicationId \"com.corevia.desk\"\n        minSdkVersion 22\n        targetSdkVersion 36\n        versionCode flutterVersionCode.toInteger()\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/debug/AndroidManifest.xml",
+   "hunks": [
+    {
+     "old": "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    package=\"com.carriez.flutter_hbb\">\n    <!-- Flutter needs it to communicate with the running application\n         to allow setting breakpoints, to provide hot reload, etc.\n    -->\n",
+     "new": "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    package=\"com.corevia.desk\">\n    <!-- Flutter needs it to communicate with the running application\n         to allow setting breakpoints, to provide hot reload, etc.\n    -->\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/AndroidManifest.xml",
+   "hunks": [
+    {
+     "old": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    package=\"com.carriez.flutter_hbb\">\n\n    <uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\" tools:node=\"remove\" />\n    <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" tools:node=\"remove\" />\n",
+     "new": "<?xml version=\"1.0\" encoding=\"utf-8\"?>\n<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    xmlns:tools=\"http://schemas.android.com/tools\"\n    package=\"com.corevia.desk\">\n\n    <uses-permission android:name=\"android.permission.MANAGE_EXTERNAL_STORAGE\" tools:node=\"remove\" />\n    <uses-permission android:name=\"android.permission.READ_EXTERNAL_STORAGE\" tools:node=\"remove\" />\n"
+    },
+    {
+     "old": "    <application\n        android:name=\".MainApplication\"\n        android:icon=\"@mipmap/ic_launcher\"\n        android:label=\"RustDesk\"\n        android:roundIcon=\"@mipmap/ic_launcher\"\n        android:supportsRtl=\"true\">\n\n",
+     "new": "    <application\n        android:name=\".MainApplication\"\n        android:icon=\"@mipmap/ic_launcher\"\n        android:label=\"Corevia Desk\"\n        android:roundIcon=\"@mipmap/ic_launcher\"\n        android:supportsRtl=\"true\">\n\n"
+    },
+    {
+     "old": "                <action android:name=\"android.intent.action.BOOT_COMPLETED\" />\n                <action android:name=\"android.intent.action.QUICKBOOT_POWERON\" />\n                <!--ACTION_BOOT_COMPLETED for debug test on no root device-->\n                <action android:name=\"com.carriez.flutter_hbb.DEBUG_BOOT_COMPLETED\" />\n            </intent-filter>\n        </receiver>\n\n",
+     "new": "                <action android:name=\"android.intent.action.BOOT_COMPLETED\" />\n                <action android:name=\"android.intent.action.QUICKBOOT_POWERON\" />\n                <!--ACTION_BOOT_COMPLETED for debug test on no root device-->\n                <action android:name=\"com.corevia.desk.DEBUG_BOOT_COMPLETED\" />\n            </intent-filter>\n        </receiver>\n\n"
+    },
+    {
+     "old": "            android:name=\".InputService\"\n            android:enabled=\"true\"\n            android:exported=\"false\"\n            android:label=\"RustDesk Input\"\n            android:permission=\"android.permission.BIND_ACCESSIBILITY_SERVICE\">\n            <intent-filter>\n                <action android:name=\"android.accessibilityservice.AccessibilityService\" />\n",
+     "new": "            android:name=\".InputService\"\n            android:enabled=\"true\"\n            android:exported=\"false\"\n            android:label=\"Corevia Desk Input\"\n            android:permission=\"android.permission.BIND_ACCESSIBILITY_SERVICE\">\n            <intent-filter>\n                <action android:name=\"android.accessibilityservice.AccessibilityService\" />\n"
+    },
+    {
+     "old": "                <action android:name=\"android.intent.action.VIEW\" />\n                <category android:name=\"android.intent.category.DEFAULT\" />\n                <category android:name=\"android.intent.category.BROWSABLE\" />\n                <data android:scheme=\"rustdesk\" />\n            </intent-filter>\n        </activity>\n\n",
+     "new": "                <action android:name=\"android.intent.action.VIEW\" />\n                <category android:name=\"android.intent.category.DEFAULT\" />\n                <category android:name=\"android.intent.category.BROWSABLE\" />\n                <data android:scheme=\"corevia-desk\" />\n            </intent-filter>\n        </activity>\n\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/kotlin/ffi.kt",
+   "hunks": [
+    {
+     "old": "import android.content.Context\nimport java.nio.ByteBuffer\n\nimport com.carriez.flutter_hbb.RdClipboardManager\n\nobject FFI {\n    init {\n",
+     "new": "import android.content.Context\nimport java.nio.ByteBuffer\n\nimport com.corevia.desk.RdClipboardManager\n\nobject FFI {\n    init {\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/main/res/values/strings.xml",
+   "hunks": [
+    {
+     "old": "<resources>\n    <string name=\"app_name\">RustDesk</string>\n    <string name=\"accessibility_service_description\">Allow other devices to control your phone using virtual touch, when RustDesk screen sharing is established</string>\n    <string name=\"foreground_service_special_use_subtype\">Keeps the RustDesk remote desktop host available for authorized unattended connections and foreground notifications without starting screen capture before user approval.</string>\n</resources>\n",
+     "new": "<resources>\n    <string name=\"app_name\">Corevia Desk</string>\n    <string name=\"accessibility_service_description\">Allow other devices to control your phone using virtual touch, when Corevia Desk screen sharing is established</string>\n    <string name=\"foreground_service_special_use_subtype\">Keeps the Corevia Desk remote desktop host available for authorized unattended connections and foreground notifications without starting screen capture before user approval.</string>\n</resources>\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/android/app/src/profile/AndroidManifest.xml",
+   "hunks": [
+    {
+     "old": "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    package=\"com.carriez.flutter_hbb\">\n    <!-- Flutter needs it to communicate with the running application\n         to allow setting breakpoints, to provide hot reload, etc.\n    -->\n",
+     "new": "<manifest xmlns:android=\"http://schemas.android.com/apk/res/android\"\n    package=\"com.corevia.desk\">\n    <!-- Flutter needs it to communicate with the running application\n         to allow setting breakpoints, to provide hot reload, etc.\n    -->\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/ios/Runner.xcodeproj/project.pbxproj",
+   "hunks": [
+    {
+     "old": "\t\t\t\t\t\"\\\"sqflite\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"uni_links\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"url_launcher_ios\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"video_player_avfoundation\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"wakelock_plus\\\"\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.carriez.flutterHbb;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSTRIP_STYLE = \"non-global\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t\tVERSIONING_SYSTEM = \"apple-generic\";\n\t\t\t};\n\t\t\tname = Profile;\n\t\t};\n\t\t97C147031CF9000F007C117D /* Debug */ = {\n\t\t\tisa = XCBuildConfiguration;\n",
+     "new": "\t\t\t\t\t\"\\\"sqflite\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"uni_links\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"url_launcher_ios\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"video_player_avfoundation\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"wakelock_plus\\\"\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.corevia.desk;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSTRIP_STYLE = \"non-global\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t\tVERSIONING_SYSTEM = \"apple-generic\";\n\t\t\t};\n\t\t\tname = Profile;\n\t\t};\n\t\t97C147031CF9000F007C117D /* Debug */ = {\n\t\t\tisa = XCBuildConfiguration;\n"
+    },
+    {
+     "old": "\t\t\t\t\t\"\\\"sqflite\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"uni_links\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"url_launcher_ios\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"video_player_avfoundation\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"wakelock_plus\\\"\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.carriez.flutterHbb;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSTRIP_STYLE = \"non-global\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_OPTIMIZATION_LEVEL = \"-Onone\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t\tVERSIONING_SYSTEM = \"apple-generic\";\n\t\t\t};\n\t\t\tname = Debug;\n\t\t};\n\t\t97C147071CF9000F007C117D /* Release */ = {\n",
+     "new": "\t\t\t\t\t\"\\\"sqflite\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"uni_links\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"url_launcher_ios\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"video_player_avfoundation\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"wakelock_plus\\\"\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.corevia.desk;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSTRIP_STYLE = \"non-global\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_OPTIMIZATION_LEVEL = \"-Onone\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t\tVERSIONING_SYSTEM = \"apple-generic\";\n\t\t\t};\n\t\t\tname = Debug;\n\t\t};\n\t\t97C147071CF9000F007C117D /* Release */ = {\n"
+    },
+    {
+     "old": "\t\t\t\t\t\"\\\"sqflite\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"uni_links\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"url_launcher_ios\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"video_player_avfoundation\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"wakelock_plus\\\"\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.carriez.flutterHbb;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSTRIP_STYLE = \"non-global\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t\tVERSIONING_SYSTEM = \"apple-generic\";\n\t\t\t};\n\t\t\tname = Release;\n\t\t};\n/* End XCBuildConfiguration section */\n\n",
+     "new": "\t\t\t\t\t\"\\\"sqflite\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"uni_links\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"url_launcher_ios\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"video_player_avfoundation\\\"\",\n\t\t\t\t\t\"-framework\",\n\t\t\t\t\t\"\\\"wakelock_plus\\\"\",\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.corevia.desk;\n\t\t\t\tPRODUCT_NAME = \"$(TARGET_NAME)\";\n\t\t\t\tSTRIP_STYLE = \"non-global\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n\t\t\t\tVERSIONING_SYSTEM = \"apple-generic\";\n\t\t\t};\n\t\t\tname = Release;\n\t\t};\n/* End XCBuildConfiguration section */\n\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/ios/Runner/Info.plist",
+   "hunks": [
+    {
+     "old": "\t<key>CFBundleDevelopmentRegion</key>\n\t<string>$(DEVELOPMENT_LANGUAGE)</string>\n    <key>CFBundleDisplayName</key>\n    <string>RustDesk</string>\n\t<key>CFBundleExecutable</key>\n\t<string>$(EXECUTABLE_NAME)</string>\n\t<key>CFBundleIdentifier</key>\n",
+     "new": "\t<key>CFBundleDevelopmentRegion</key>\n\t<string>$(DEVELOPMENT_LANGUAGE)</string>\n    <key>CFBundleDisplayName</key>\n    <string>Corevia Desk</string>\n\t<key>CFBundleExecutable</key>\n\t<string>$(EXECUTABLE_NAME)</string>\n\t<key>CFBundleIdentifier</key>\n"
+    },
+    {
+     "old": "\t<key>CFBundleInfoDictionaryVersion</key>\n    <string>6.0</string>\n\t<key>CFBundleName</key>\n\t<string>RustDesk</string>\n\t<key>CFBundlePackageType</key>\n\t<string>APPL</string>\n\t<key>CFBundleShortVersionString</key>\n",
+     "new": "\t<key>CFBundleInfoDictionaryVersion</key>\n    <string>6.0</string>\n\t<key>CFBundleName</key>\n\t<string>Corevia Desk</string>\n\t<key>CFBundlePackageType</key>\n\t<string>APPL</string>\n\t<key>CFBundleShortVersionString</key>\n"
+    },
+    {
+     "old": "\t\t\t<key>CFBundleURLIconFile</key>\n\t\t\t<string></string>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>com.carriez.rustdesk</string>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>rustdesk</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n",
+     "new": "\t\t\t<key>CFBundleURLIconFile</key>\n\t\t\t<string></string>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>com.corevia.desk</string>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>corevia-desk</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/ios/exportOptions.plist",
+   "hunks": [
+    {
+     "old": " <string>HZF9JMC8YN</string>\n <key>provisioningProfiles</key>\n <dict>\n <key>com.carriez.flutterHbb</key>\n <string>rustdesk-ios-prod-app-store</string>\n </dict>\n </dict>\n </plist>\n",
+     "new": " <string>HZF9JMC8YN</string>\n <key>provisioningProfiles</key>\n <dict>\n <key>com.corevia.desk</key>\n <string>corevia-desk-ios-prod-app-store</string>\n </dict>\n </dict>\n </plist>\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/lib/common.dart",
+   "hunks": [
+    {
+     "old": "///\n/// Note: not found a general solution for rust based AVFoundation bingding.\n/// [AVFoundation] crate has compile error.\nconst kMacOSPermChannel = MethodChannel(\"org.rustdesk.rustdesk/host\");\n\nenum PermissionAuthorizeType {\n  undetermined,\n",
+     "new": "///\n/// Note: not found a general solution for rust based AVFoundation bingding.\n/// [AVFoundation] crate has compile error.\nconst kMacOSPermChannel = MethodChannel(\"org.corevia.desk/host\");\n\nenum PermissionAuthorizeType {\n  undetermined,\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/lib/desktop/pages/desktop_home_page.dart",
+   "hunks": [
+    {
+     "old": "    if (!bind.isCustomClient() &&\n        updateUrl.isNotEmpty &&\n        !isCardClosed &&\n        bind.mainUriPrefixSync().contains('rustdesk')) {\n      final isToUpdate = (isWindows || isMacOS) && bind.mainIsInstalled();\n      String btnText = isToUpdate ? 'Update' : 'Download';\n      GestureTapCallback onPressed = () async {\n",
+     "new": "    if (!bind.isCustomClient() &&\n        updateUrl.isNotEmpty &&\n        !isCardClosed &&\n        bind.mainUriPrefixSync().contains('corevia')) {\n      final isToUpdate = (isWindows || isMacOS) && bind.mainIsInstalled();\n      String btnText = isToUpdate ? 'Update' : 'Download';\n      GestureTapCallback onPressed = () async {\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/lib/models/input_model.dart",
+   "hunks": [
+    {
+     "old": "    if (_sideButtonChannelInitialized) return;\n    _sideButtonChannelInitialized = true;\n\n    const channel = MethodChannel('org.rustdesk.rustdesk/side_buttons');\n    channel.setMethodCallHandler((call) async {\n      if (call.method == 'onSideMouseButton') {\n        final args = call.arguments as Map<dynamic, dynamic>;\n",
+     "new": "    if (_sideButtonChannelInitialized) return;\n    _sideButtonChannelInitialized = true;\n\n    const channel = MethodChannel('org.corevia.desk/side_buttons');\n    channel.setMethodCallHandler((call) async {\n      if (call.method == 'onSideMouseButton') {\n        final args = call.arguments as Map<dynamic, dynamic>;\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/lib/models/relative_mouse_model.dart",
+   "hunks": [
+    {
+     "old": "    if (_hostChannelInitialized) return;\n    _hostChannelInitialized = true;\n\n    _hostChannel = const MethodChannel('org.rustdesk.rustdesk/host');\n    _hostChannel!.setMethodCallHandler((call) async {\n      if (call.method == 'onMouseDelta') {\n        final args = call.arguments as Map<dynamic, dynamic>;\n",
+     "new": "    if (_hostChannelInitialized) return;\n    _hostChannelInitialized = true;\n\n    _hostChannel = const MethodChannel('org.corevia.desk/host');\n    _hostChannel!.setMethodCallHandler((call) async {\n      if (call.method == 'onMouseDelta') {\n        final args = call.arguments as Map<dynamic, dynamic>;\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/lib/utils/platform_channel.dart",
+   "hunks": [
+    {
+     "old": "\nenum SystemWindowTheme { light, dark }\n\n/// The platform channel for RustDesk.\nclass RdPlatformChannel {\n  RdPlatformChannel._();\n\n",
+     "new": "\nenum SystemWindowTheme { light, dark }\n\n/// The platform channel for Corevia Desk.\nclass RdPlatformChannel {\n  RdPlatformChannel._();\n\n"
+    },
+    {
+     "old": "  static RdPlatformChannel get instance => _windowUtil;\n\n  final MethodChannel _hostMethodChannel =\n      MethodChannel(\"org.rustdesk.rustdesk/host\");\n\n  /// Bump the position of the mouse cursor, if applicable\n  Future<bool> bumpMouse({required int dx, required int dy}) async {\n",
+     "new": "  static RdPlatformChannel get instance => _windowUtil;\n\n  final MethodChannel _hostMethodChannel =\n      MethodChannel(\"org.corevia.desk/host\");\n\n  /// Bump the position of the mouse cursor, if applicable\n  Future<bool> bumpMouse({required int dx, required int dy}) async {\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/linux/CMakeLists.txt",
+   "hunks": [
+    {
+     "old": "set(BINARY_NAME \"rustdesk\")\n# The unique GTK application identifier for this application. See:\n# https://wiki.gnome.org/HowDoI/ChooseApplicationID\nset(APPLICATION_ID \"com.carriez.flutter_hbb\")\n\n# Explicitly opt into modern CMake behaviors to avoid warnings with recent\n# versions of CMake.\n",
+     "new": "set(BINARY_NAME \"rustdesk\")\n# The unique GTK application identifier for this application. See:\n# https://wiki.gnome.org/HowDoI/ChooseApplicationID\nset(APPLICATION_ID \"com.corevia.desk\")\n\n# Explicitly opt into modern CMake behaviors to avoid warnings with recent\n# versions of CMake.\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/linux/my_application.cc",
+   "hunks": [
+    {
+     "old": "// Flutter's Linux embedder doesn't deliver X11 button 8/9 events to Dart.\n// We intercept them via GDK and forward through a dedicated platform channel.\n\nstatic const char* kSideButtonChannelName = \"org.rustdesk.rustdesk/side_buttons\";\n\nstatic gboolean on_side_button_event(GtkWidget* widget, GdkEventButton* event, gpointer user_data) {\n  if (event->button != 8 && event->button != 9) {\n",
+     "new": "// Flutter's Linux embedder doesn't deliver X11 button 8/9 events to Dart.\n// We intercept them via GDK and forward through a dedicated platform channel.\n\nstatic const char* kSideButtonChannelName = \"org.corevia.desk/side_buttons\";\n\nstatic gboolean on_side_button_event(GtkWidget* widget, GdkEventButton* event, gpointer user_data) {\n  if (event->button != 8 && event->button != 9) {\n"
+    },
+    {
+     "old": "  if (use_header_bar) {\n    GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());\n    gtk_widget_show(GTK_WIDGET(header_bar));\n    gtk_header_bar_set_title(header_bar, \"rustdesk\");\n    gtk_header_bar_set_show_close_button(header_bar, TRUE);\n    gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));\n  } else {\n    gtk_window_set_title(window, \"rustdesk\");\n  }\n\n  // auto bdw = bitsdojo_window_from(window); // <--- add this line\n",
+     "new": "  if (use_header_bar) {\n    GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());\n    gtk_widget_show(GTK_WIDGET(header_bar));\n    gtk_header_bar_set_title(header_bar, \"Corevia Desk\");\n    gtk_header_bar_set_show_close_button(header_bar, TRUE);\n    gtk_window_set_titlebar(window, GTK_WIDGET(header_bar));\n  } else {\n    gtk_window_set_title(window, \"Corevia Desk\");\n  }\n\n  // auto bdw = bitsdojo_window_from(window); // <--- add this line\n"
+    },
+    {
+     "old": "  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();\n  self->host_channel = fl_method_channel_new(\n    fl_engine_get_binary_messenger(fl_view_get_engine(view)),\n    \"org.rustdesk.rustdesk/host\",\n    FL_METHOD_CODEC(codec));\n  fl_method_channel_set_method_call_handler(\n    self->host_channel,\n",
+     "new": "  g_autoptr(FlStandardMethodCodec) codec = fl_standard_method_codec_new();\n  self->host_channel = fl_method_channel_new(\n    fl_engine_get_binary_messenger(fl_view_get_engine(view)),\n    \"org.corevia.desk/host\",\n    FL_METHOD_CODEC(codec));\n  fl_method_channel_set_method_call_handler(\n    self->host_channel,\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/macos/Runner.xcodeproj/project.pbxproj",
+   "hunks": [
+    {
+     "old": "\t\t295AD07E63F13855C270A0E0 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = \"Pods-Runner.release.xcconfig\"; path = \"Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig\"; sourceTree = \"<group>\"; };\n\t\t333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = \"<group>\"; };\n\t\t335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedPluginRegistrant.swift; sourceTree = \"<group>\"; };\n\t\t33CC10ED2044A3C60003C045 /* RustDesk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = RustDesk.app; sourceTree = BUILT_PRODUCTS_DIR; };\n\t\t33CC10F02044A3C60003C045 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = \"<group>\"; };\n\t\t33CC10F52044A3C60003C045 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = \"<group>\"; };\n\t\t33CC10F72044A3C60003C045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Runner/Info.plist; sourceTree = \"<group>\"; };\n",
+     "new": "\t\t295AD07E63F13855C270A0E0 /* Pods-Runner.release.xcconfig */ = {isa = PBXFileReference; includeInIndex = 1; lastKnownFileType = text.xcconfig; name = \"Pods-Runner.release.xcconfig\"; path = \"Target Support Files/Pods-Runner/Pods-Runner.release.xcconfig\"; sourceTree = \"<group>\"; };\n\t\t333000ED22D3DE5D00554162 /* Warnings.xcconfig */ = {isa = PBXFileReference; lastKnownFileType = text.xcconfig; path = Warnings.xcconfig; sourceTree = \"<group>\"; };\n\t\t335BBD1A22A9A15E00E9071D /* GeneratedPluginRegistrant.swift */ = {isa = PBXFileReference; fileEncoding = 4; lastKnownFileType = sourcecode.swift; path = GeneratedPluginRegistrant.swift; sourceTree = \"<group>\"; };\n\t\t33CC10ED2044A3C60003C045 /* CoreviaDesk.app */ = {isa = PBXFileReference; explicitFileType = wrapper.application; includeInIndex = 0; path = CoreviaDesk.app; sourceTree = BUILT_PRODUCTS_DIR; };\n\t\t33CC10F02044A3C60003C045 /* AppDelegate.swift */ = {isa = PBXFileReference; lastKnownFileType = sourcecode.swift; path = AppDelegate.swift; sourceTree = \"<group>\"; };\n\t\t33CC10F52044A3C60003C045 /* Base */ = {isa = PBXFileReference; lastKnownFileType = file.xib; name = Base; path = Base.lproj/MainMenu.xib; sourceTree = \"<group>\"; };\n\t\t33CC10F72044A3C60003C045 /* Info.plist */ = {isa = PBXFileReference; lastKnownFileType = text.plist.xml; name = Info.plist; path = Runner/Info.plist; sourceTree = \"<group>\"; };\n"
+    },
+    {
+     "old": "\t\t33CC10EE2044A3C60003C045 /* Products */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t33CC10ED2044A3C60003C045 /* RustDesk.app */,\n\t\t\t);\n\t\t\tname = Products;\n\t\t\tsourceTree = \"<group>\";\n",
+     "new": "\t\t33CC10EE2044A3C60003C045 /* Products */ = {\n\t\t\tisa = PBXGroup;\n\t\t\tchildren = (\n\t\t\t\t33CC10ED2044A3C60003C045 /* CoreviaDesk.app */,\n\t\t\t);\n\t\t\tname = Products;\n\t\t\tsourceTree = \"<group>\";\n"
+    },
+    {
+     "old": "\t\t\t);\n\t\t\tname = Runner;\n\t\t\tproductName = Runner;\n\t\t\tproductReference = 33CC10ED2044A3C60003C045 /* RustDesk.app */;\n\t\t\tproductType = \"com.apple.product-type.application\";\n\t\t};\n/* End PBXNativeTarget section */\n",
+     "new": "\t\t\t);\n\t\t\tname = Runner;\n\t\t\tproductName = Runner;\n\t\t\tproductReference = 33CC10ED2044A3C60003C045 /* CoreviaDesk.app */;\n\t\t\tproductType = \"com.apple.product-type.application\";\n\t\t};\n/* End PBXNativeTarget section */\n"
+    },
+    {
+     "old": "\t\t\t\t\t../../target/profile,\n\t\t\t\t);\n\t\t\t\tMACOSX_DEPLOYMENT_TARGET = 10.14;\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.carriez.rustdesk;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n",
+     "new": "\t\t\t\t\t../../target/profile,\n\t\t\t\t);\n\t\t\t\tMACOSX_DEPLOYMENT_TARGET = 10.14;\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.corevia.desk;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\tSWIFT_VERSION = 5.0;\n"
+    },
+    {
+     "old": "\t\t\t\t\t../../target/debug,\n\t\t\t\t);\n\t\t\t\tMACOSX_DEPLOYMENT_TARGET = 10.14;\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.carriez.rustdesk;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\t\"SWIFT_OBJC_BRIDGING_HEADER[arch=*]\" = Runner/bridge_generated.h;\n",
+     "new": "\t\t\t\t\t../../target/debug,\n\t\t\t\t);\n\t\t\t\tMACOSX_DEPLOYMENT_TARGET = 10.14;\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.corevia.desk;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\t\"SWIFT_OBJC_BRIDGING_HEADER[arch=*]\" = Runner/bridge_generated.h;\n"
+    },
+    {
+     "old": "\t\t\t\t\t__cgpreloginapp,\n\t\t\t\t\t/dev/null,\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.carriez.rustdesk;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\t\"SWIFT_OBJC_BRIDGING_HEADER[arch=*]\" = Runner/bridge_generated.h;\n",
+     "new": "\t\t\t\t\t__cgpreloginapp,\n\t\t\t\t\t/dev/null,\n\t\t\t\t);\n\t\t\t\tPRODUCT_BUNDLE_IDENTIFIER = com.corevia.desk;\n\t\t\t\tPROVISIONING_PROFILE_SPECIFIER = \"\";\n\t\t\t\tSWIFT_OBJC_BRIDGING_HEADER = \"Runner/Runner-Bridging-Header.h\";\n\t\t\t\t\"SWIFT_OBJC_BRIDGING_HEADER[arch=*]\" = Runner/bridge_generated.h;\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/macos/Runner.xcodeproj/xcshareddata/xcschemes/Runner.xcscheme",
+   "hunks": [
+    {
+     "old": "            buildForProfiling = \"YES\"\n            buildForArchiving = \"YES\"\n            buildForAnalyzing = \"YES\">\n            <BuildableReference\n               BuildableIdentifier = \"primary\"\n               BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n               BuildableName = \"RustDesk.app\"\n               BlueprintName = \"Runner\"\n               ReferencedContainer = \"container:Runner.xcodeproj\">\n            </BuildableReference>\n         </BuildActionEntry>\n      </BuildActionEntries>\n   </BuildAction>\n",
+     "new": "            buildForProfiling = \"YES\"\n            buildForArchiving = \"YES\"\n            buildForAnalyzing = \"YES\">\n            <BuildableReference\n               BuildableIdentifier = \"primary\"\n               BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n               BuildableName = \"CoreviaDesk.app\"\n               BlueprintName = \"Runner\"\n               ReferencedContainer = \"container:Runner.xcodeproj\">\n            </BuildableReference>\n         </BuildActionEntry>\n      </BuildActionEntries>\n   </BuildAction>\n"
+    },
+    {
+     "old": "      selectedLauncherIdentifier = \"Xcode.DebuggerFoundation.Launcher.LLDB\"\n      shouldUseLaunchSchemeArgsEnv = \"YES\">\n      <MacroExpansion>\n         <BuildableReference\n            BuildableIdentifier = \"primary\"\n            BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n            BuildableName = \"RustDesk.app\"\n            BlueprintName = \"Runner\"\n            ReferencedContainer = \"container:Runner.xcodeproj\">\n         </BuildableReference>\n      </MacroExpansion>\n      <Testables>\n      </Testables>\n",
+     "new": "      selectedLauncherIdentifier = \"Xcode.DebuggerFoundation.Launcher.LLDB\"\n      shouldUseLaunchSchemeArgsEnv = \"YES\">\n      <MacroExpansion>\n         <BuildableReference\n            BuildableIdentifier = \"primary\"\n            BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n            BuildableName = \"CoreviaDesk.app\"\n            BlueprintName = \"Runner\"\n            ReferencedContainer = \"container:Runner.xcodeproj\">\n         </BuildableReference>\n      </MacroExpansion>\n      <Testables>\n      </Testables>\n"
+    },
+    {
+     "old": "      allowLocationSimulation = \"YES\">\n      <BuildableProductRunnable\n         runnableDebuggingMode = \"0\">\n         <BuildableReference\n            BuildableIdentifier = \"primary\"\n            BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n            BuildableName = \"RustDesk.app\"\n            BlueprintName = \"Runner\"\n            ReferencedContainer = \"container:Runner.xcodeproj\">\n         </BuildableReference>\n      </BuildableProductRunnable>\n   </LaunchAction>\n   <ProfileAction\n",
+     "new": "      allowLocationSimulation = \"YES\">\n      <BuildableProductRunnable\n         runnableDebuggingMode = \"0\">\n         <BuildableReference\n            BuildableIdentifier = \"primary\"\n            BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n            BuildableName = \"CoreviaDesk.app\"\n            BlueprintName = \"Runner\"\n            ReferencedContainer = \"container:Runner.xcodeproj\">\n         </BuildableReference>\n      </BuildableProductRunnable>\n   </LaunchAction>\n   <ProfileAction\n"
+    },
+    {
+     "old": "      debugDocumentVersioning = \"YES\">\n      <BuildableProductRunnable\n         runnableDebuggingMode = \"0\">\n         <BuildableReference\n            BuildableIdentifier = \"primary\"\n            BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n            BuildableName = \"RustDesk.app\"\n            BlueprintName = \"Runner\"\n            ReferencedContainer = \"container:Runner.xcodeproj\">\n         </BuildableReference>\n      </BuildableProductRunnable>\n   </ProfileAction>\n   <AnalyzeAction\n",
+     "new": "      debugDocumentVersioning = \"YES\">\n      <BuildableProductRunnable\n         runnableDebuggingMode = \"0\">\n         <BuildableReference\n            BuildableIdentifier = \"primary\"\n            BlueprintIdentifier = \"33CC10EC2044A3C60003C045\"\n            BuildableName = \"CoreviaDesk.app\"\n            BlueprintName = \"Runner\"\n            ReferencedContainer = \"container:Runner.xcodeproj\">\n         </BuildableReference>\n      </BuildableProductRunnable>\n   </ProfileAction>\n   <AnalyzeAction\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/macos/Runner/Base.lproj/MainMenu.xib",
+   "hunks": [
+    {
+     "old": "        </customObject>\n        <customObject id=\"-1\" userLabel=\"First Responder\" customClass=\"FirstResponder\"/>\n        <customObject id=\"-3\" userLabel=\"Application\" customClass=\"NSObject\"/>\n        <customObject id=\"Voe-Tx-rLC\" customClass=\"AppDelegate\" customModule=\"RustDesk\" customModuleProvider=\"target\">\n            <connections>\n                <outlet property=\"applicationMenu\" destination=\"uQy-DD-JDr\" id=\"XBo-yE-nKs\"/>\n                <outlet property=\"mainFlutterWindow\" destination=\"QvC-M9-y7g\" id=\"gIp-Ho-8D9\"/>\n",
+     "new": "        </customObject>\n        <customObject id=\"-1\" userLabel=\"First Responder\" customClass=\"FirstResponder\"/>\n        <customObject id=\"-3\" userLabel=\"Application\" customClass=\"NSObject\"/>\n        <customObject id=\"Voe-Tx-rLC\" customClass=\"AppDelegate\" customModule=\"CoreviaDesk\" customModuleProvider=\"target\">\n            <connections>\n                <outlet property=\"applicationMenu\" destination=\"uQy-DD-JDr\" id=\"XBo-yE-nKs\"/>\n                <outlet property=\"mainFlutterWindow\" destination=\"QvC-M9-y7g\" id=\"gIp-Ho-8D9\"/>\n"
+    },
+    {
+     "old": "        <customObject id=\"YLy-65-1bz\" customClass=\"NSFontManager\"/>\n        <menu title=\"Main Menu\" systemMenu=\"main\" id=\"AYu-sK-qS6\">\n            <items>\n                <menuItem title=\"APP_NAME\" id=\"1Xt-HY-uBw\">\n                    <modifierMask key=\"keyEquivalentModifierMask\"/>\n                    <menu key=\"submenu\" title=\"APP_NAME\" systemMenu=\"apple\" id=\"uQy-DD-JDr\">\n                        <items>\n                            <menuItem title=\"About APP_NAME\" id=\"5kV-Vb-QxS\">\n                                <modifierMask key=\"keyEquivalentModifierMask\"/>\n                                <connections>\n                                    <action selector=\"orderFrontStandardAboutPanel:\" target=\"-1\" id=\"Exp-CZ-Vem\"/>\n",
+     "new": "        <customObject id=\"YLy-65-1bz\" customClass=\"NSFontManager\"/>\n        <menu title=\"Main Menu\" systemMenu=\"main\" id=\"AYu-sK-qS6\">\n            <items>\n                <menuItem title=\"Corevia Desk\" id=\"1Xt-HY-uBw\">\n                    <modifierMask key=\"keyEquivalentModifierMask\"/>\n                    <menu key=\"submenu\" title=\"Corevia Desk\" systemMenu=\"apple\" id=\"uQy-DD-JDr\">\n                        <items>\n                            <menuItem title=\"About Corevia Desk\" id=\"5kV-Vb-QxS\">\n                                <modifierMask key=\"keyEquivalentModifierMask\"/>\n                                <connections>\n                                    <action selector=\"orderFrontStandardAboutPanel:\" target=\"-1\" id=\"Exp-CZ-Vem\"/>\n"
+    },
+    {
+     "old": "                                <menu key=\"submenu\" title=\"Services\" systemMenu=\"services\" id=\"hz9-B4-Xy5\"/>\n                            </menuItem>\n                            <menuItem isSeparatorItem=\"YES\" id=\"4je-JR-u6R\"/>\n                            <menuItem title=\"Hide APP_NAME\" keyEquivalent=\"h\" id=\"Olw-nP-bQN\">\n                                <connections>\n                                    <action selector=\"hide:\" target=\"-1\" id=\"PnN-Uc-m68\"/>\n                                </connections>\n",
+     "new": "                                <menu key=\"submenu\" title=\"Services\" systemMenu=\"services\" id=\"hz9-B4-Xy5\"/>\n                            </menuItem>\n                            <menuItem isSeparatorItem=\"YES\" id=\"4je-JR-u6R\"/>\n                    <menuItem title=\"Hide Corevia Desk\" keyEquivalent=\"h\" id=\"Olw-nP-bQN\">\n                                <connections>\n                                    <action selector=\"hide:\" target=\"-1\" id=\"PnN-Uc-m68\"/>\n                                </connections>\n"
+    },
+    {
+     "old": "                                </connections>\n                            </menuItem>\n                            <menuItem isSeparatorItem=\"YES\" id=\"kCx-OE-vgT\"/>\n                            <menuItem title=\"Quit APP_NAME\" keyEquivalent=\"q\" id=\"4sb-4s-VLi\">\n                                <connections>\n                                    <action selector=\"terminate:\" target=\"-1\" id=\"Te7-pn-YzF\"/>\n                                </connections>\n",
+     "new": "                                </connections>\n                            </menuItem>\n                            <menuItem isSeparatorItem=\"YES\" id=\"kCx-OE-vgT\"/>\n                    <menuItem title=\"Quit Corevia Desk\" keyEquivalent=\"q\" id=\"4sb-4s-VLi\">\n                                <connections>\n                                    <action selector=\"terminate:\" target=\"-1\" id=\"Te7-pn-YzF\"/>\n                                </connections>\n"
+    },
+    {
+     "old": "            </items>\n            <point key=\"canvasLocation\" x=\"142\" y=\"-258\"/>\n        </menu>\n        <window title=\"APP_NAME\" allowsToolTipsWhenApplicationIsInactive=\"NO\" autorecalculatesKeyViewLoop=\"NO\" releasedWhenClosed=\"NO\" animationBehavior=\"default\" id=\"QvC-M9-y7g\" customClass=\"MainFlutterWindow\" customModule=\"RustDesk\" customModuleProvider=\"target\">\n            <windowStyleMask key=\"styleMask\" titled=\"YES\" closable=\"YES\" miniaturizable=\"YES\" resizable=\"YES\"/>\n            <rect key=\"contentRect\" x=\"335\" y=\"390\" width=\"800\" height=\"600\"/>\n            <rect key=\"screenRect\" x=\"0.0\" y=\"0.0\" width=\"1440\" height=\"875\"/>\n",
+     "new": "            </items>\n            <point key=\"canvasLocation\" x=\"142\" y=\"-258\"/>\n        </menu>\n        <window title=\"Corevia Desk\" allowsToolTipsWhenApplicationIsInactive=\"NO\" autorecalculatesKeyViewLoop=\"NO\" releasedWhenClosed=\"NO\" animationBehavior=\"default\" id=\"QvC-M9-y7g\" customClass=\"MainFlutterWindow\" customModule=\"CoreviaDesk\" customModuleProvider=\"target\">\n            <windowStyleMask key=\"styleMask\" titled=\"YES\" closable=\"YES\" miniaturizable=\"YES\" resizable=\"YES\"/>\n            <rect key=\"contentRect\" x=\"335\" y=\"390\" width=\"800\" height=\"600\"/>\n            <rect key=\"screenRect\" x=\"0.0\" y=\"0.0\" width=\"1440\" height=\"875\"/>\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/macos/Runner/Configs/AppInfo.xcconfig",
+   "hunks": [
+    {
+     "old": "// 'flutter create' template.\n\n// The application's name. By default this is also the title of the Flutter window.\nPRODUCT_NAME = RustDesk\n\n// The application's bundle identifier\nPRODUCT_BUNDLE_IDENTIFIER = com.carriez.flutterHbb\n\n// The copyright displayed in application information\nPRODUCT_COPYRIGHT = Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved.\n",
+     "new": "// 'flutter create' template.\n\n// The application's name. By default this is also the title of the Flutter window.\nPRODUCT_NAME = CoreviaDesk\n\n// The application's bundle identifier\nPRODUCT_BUNDLE_IDENTIFIER = com.corevia.desk\n\n// The copyright displayed in application information\nPRODUCT_COPYRIGHT = Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved.\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/macos/Runner/Info.plist",
+   "hunks": [
+    {
+     "old": "<dict>\n\t<key>CFBundleDevelopmentRegion</key>\n\t<string>$(DEVELOPMENT_LANGUAGE)</string>\n\t<key>CFBundleExecutable</key>\n\t<string>$(EXECUTABLE_NAME)</string>\n\t<key>CFBundleIconFile</key>\n",
+     "new": "<dict>\n\t<key>CFBundleDevelopmentRegion</key>\n\t<string>$(DEVELOPMENT_LANGUAGE)</string>\n\t<key>CFBundleDisplayName</key>\n\t<string>Corevia Desk</string>\n\t<key>CFBundleExecutable</key>\n\t<string>$(EXECUTABLE_NAME)</string>\n\t<key>CFBundleIconFile</key>\n"
+    },
+    {
+     "old": "\t\t\t<key>CFBundleURLIconFile</key>\n\t\t\t<string></string>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>com.carriez.rustdesk</string>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>rustdesk</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n",
+     "new": "\t\t\t<key>CFBundleURLIconFile</key>\n\t\t\t<string></string>\n\t\t\t<key>CFBundleURLName</key>\n\t\t\t<string>com.corevia.desk</string>\n\t\t\t<key>CFBundleURLSchemes</key>\n\t\t\t<array>\n\t\t\t\t<string>corevia-desk</string>\n\t\t\t</array>\n\t\t</dict>\n\t</array>\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/macos/Runner/MainFlutterWindow.swift",
+   "hunks": [
+    {
+     "old": "        // Do this FIRST before setting any state\n        let result = CGAssociateMouseAndMouseCursorPosition(0)\n        if result != CGError.success {\n            NSLog(\"[RustDesk] Failed to dissociate mouse from cursor position: %d\", result.rawValue)\n            return false\n        }\n\n",
+     "new": "        // Do this FIRST before setting any state\n        let result = CGAssociateMouseAndMouseCursorPosition(0)\n        if result != CGError.success {\n            NSLog(\"[Corevia Desk] Failed to dissociate mouse from cursor position: %d\", result.rawValue)\n            return false\n        }\n\n"
+    },
+    {
+     "old": "\n        // Check if monitor was created successfully\n        if state.eventMonitor == nil {\n            NSLog(\"[RustDesk] Failed to create event monitor for relative mouse mode\")\n            // Re-associate mouse since we failed\n            CGAssociateMouseAndMouseCursorPosition(1)\n            state.deltaChannel = nil\n",
+     "new": "\n        // Check if monitor was created successfully\n        if state.eventMonitor == nil {\n            NSLog(\"[Corevia Desk] Failed to create event monitor for relative mouse mode\")\n            // Re-associate mouse since we failed\n            CGAssociateMouseAndMouseCursorPosition(1)\n            state.deltaChannel = nil\n"
+    },
+    {
+     "old": "        // Re-associate mouse with cursor position (non-blocking with async retry)\n        let result = CGAssociateMouseAndMouseCursorPosition(1)\n        if result != CGError.success {\n            NSLog(\"[RustDesk] Failed to re-associate mouse with cursor position: %d, scheduling retry...\", result.rawValue)\n            // Non-blocking retry after 50ms\n            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {\n                let retryResult = CGAssociateMouseAndMouseCursorPosition(1)\n                if retryResult != CGError.success {\n                    NSLog(\"[RustDesk] Retry failed to re-associate mouse: %d. Cursor may remain locked.\", retryResult.rawValue)\n                }\n            }\n        }\n    }\n\n    public func setMethodHandler(registrar: FlutterPluginRegistrar) {\n        let channel = FlutterMethodChannel(name: \"org.rustdesk.rustdesk/host\", binaryMessenger: registrar.messenger)\n        channel.setMethodCallHandler({\n            (call, result) -> Void in\n                switch call.method {\n",
+     "new": "        // Re-associate mouse with cursor position (non-blocking with async retry)\n        let result = CGAssociateMouseAndMouseCursorPosition(1)\n        if result != CGError.success {\n            NSLog(\"[Corevia Desk] Failed to re-associate mouse with cursor position: %d, scheduling retry...\", result.rawValue)\n            // Non-blocking retry after 50ms\n            DispatchQueue.main.asyncAfter(deadline: .now() + 0.05) {\n                let retryResult = CGAssociateMouseAndMouseCursorPosition(1)\n                if retryResult != CGError.success {\n                    NSLog(\"[Corevia Desk] Retry failed to re-associate mouse: %d. Cursor may remain locked.\", retryResult.rawValue)\n                }\n            }\n        }\n    }\n\n    public func setMethodHandler(registrar: FlutterPluginRegistrar) {\n        let channel = FlutterMethodChannel(name: \"org.corevia.desk/host\", binaryMessenger: registrar.messenger)\n        channel.setMethodCallHandler({\n            (call, result) -> Void in\n                switch call.method {\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/windows/CMakeLists.txt",
+   "hunks": [
+    {
+     "old": "cmake_minimum_required(VERSION 3.14)\nproject(rustdesk LANGUAGES CXX)\n\n# The name of the executable created for the application. Change this to change\n# the on-disk name of your application.\nset(BINARY_NAME \"rustdesk\")\n\n# Explicitly opt into modern CMake behaviors to avoid warnings with recent\n# versions of CMake.\n",
+     "new": "cmake_minimum_required(VERSION 3.14)\nproject(rustdesk LANGUAGES CXX)\n\n# The user-facing executable is shipped as Corevia Desk. The Rust library\n# keeps its compatibility name (`librustdesk.dll`).\nset(BINARY_NAME \"CoreviaDesk\")\n\n# Explicitly opt into modern CMake behaviors to avoid warnings with recent\n# versions of CMake.\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/windows/runner/Runner.rc",
+   "hunks": [
+    {
+     "old": "        BLOCK \"040904e4\"\n        BEGIN\n            VALUE \"CompanyName\", \"Purslane Tech Pte. Ltd.\" \"\\0\"\n            VALUE \"FileDescription\", \"RustDesk Remote Desktop\" \"\\0\"\n            VALUE \"FileVersion\", VERSION_AS_STRING \"\\0\"\n            VALUE \"InternalName\", \"rustdesk\" \"\\0\"\n            VALUE \"LegalCopyright\", \"Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved.\" \"\\0\"\n            VALUE \"OriginalFilename\", \"rustdesk.exe\" \"\\0\"\n            VALUE \"ProductName\", \"RustDesk\" \"\\0\"\n            VALUE \"ProductVersion\", VERSION_AS_STRING \"\\0\"\n        END\n    END\n",
+     "new": "        BLOCK \"040904e4\"\n        BEGIN\n            VALUE \"CompanyName\", \"Purslane Tech Pte. Ltd.\" \"\\0\"\n            VALUE \"FileDescription\", \"Corevia Desk Remote Desktop\" \"\\0\"\n            VALUE \"FileVersion\", VERSION_AS_STRING \"\\0\"\n            VALUE \"InternalName\", \"CoreviaDesk\" \"\\0\"\n            VALUE \"LegalCopyright\", \"Copyright © 2026 Purslane Tech Pte. Ltd. All rights reserved.\" \"\\0\"\n            VALUE \"OriginalFilename\", \"CoreviaDesk.exe\" \"\\0\"\n            VALUE \"ProductName\", \"Corevia Desk\" \"\\0\"\n            VALUE \"ProductVersion\", VERSION_AS_STRING \"\\0\"\n        END\n    END\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/windows/runner/flutter_window.cpp",
+   "hunks": [
+    {
+     "old": "\n  flutter::MethodChannel<> channel(\n    flutter_controller_->engine()->messenger(),\n    \"org.rustdesk.rustdesk/host\",\n    &flutter::StandardMethodCodec::GetInstance());\n\n  channel.SetMethodCallHandler(\n",
+     "new": "\n  flutter::MethodChannel<> channel(\n    flutter_controller_->engine()->messenger(),\n    \"org.corevia.desk/host\",\n    &flutter::StandardMethodCodec::GetInstance());\n\n  channel.SetMethodCallHandler(\n"
+    },
+    {
+     "old": "          // one or under a debugger (see main.cpp), and this fires on end-user\n          // machines. OutputDebugString is readable with DebugView there.\n          OutputDebugStringA(\n              \"rustdesk: Flutter window did not render its first frame, \"\n              \"giving up.\\n\");\n          KillTimer(hwnd, kForceRedrawTimerId);\n        } else if (force_redraw_tries_ <= kForceRedrawCheapTries) {\n",
+     "new": "          // one or under a debugger (see main.cpp), and this fires on end-user\n          // machines. OutputDebugString is readable with DebugView there.\n          OutputDebugStringA(\n              \"corevia-desk: Flutter window did not render its first frame, \"\n              \"giving up.\\n\");\n          KillTimer(hwnd, kForceRedrawTimerId);\n        } else if (force_redraw_tries_ <= kForceRedrawCheapTries) {\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "flutter/windows/runner/main.cpp",
+   "hunks": [
+    {
+     "old": "    for (const auto& argument : command_line_arguments) {\n      args_str += (argument + \" \");\n    }\n    // std::cout << \"RustDesk [\" << args_str << \"], core returns false, exiting without launching Flutter app.\" << std::endl;\n    return EXIT_SUCCESS;\n  }\n  std::vector<std::string> rust_args(c_args, c_args + args_len);\n",
+     "new": "    for (const auto& argument : command_line_arguments) {\n      args_str += (argument + \" \");\n    }\n    // std::cout << \"Corevia Desk [\" << args_str << \"], core returns false, exiting without launching Flutter app.\" << std::endl;\n    return EXIT_SUCCESS;\n  }\n  std::vector<std::string> rust_args(c_args, c_args + args_len);\n"
+    },
+    {
+     "old": "        command_line_arguments.end());\n  }\n\n  std::wstring app_name = L\"RustDesk\";\n  FUNC_RUSTDESK_GET_APP_NAME get_rustdesk_app_name = (FUNC_RUSTDESK_GET_APP_NAME)GetProcAddress(hInstance, \"get_rustdesk_app_name\");\n  if (get_rustdesk_app_name) {\n    wchar_t app_name_buffer[512] = {0};\n",
+     "new": "        command_line_arguments.end());\n  }\n\n  std::wstring app_name = L\"Corevia Desk\";\n  FUNC_RUSTDESK_GET_APP_NAME get_rustdesk_app_name = (FUNC_RUSTDESK_GET_APP_NAME)GetProcAddress(hInstance, \"get_rustdesk_app_name\");\n  if (get_rustdesk_app_name) {\n    wchar_t app_name_buffer[512] = {0};\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "res/msi/preprocess.py",
+   "hunks": [
+    {
+     "old": "        \"-d\",\n        \"--dist-dir\",\n        type=str,\n        default=\"../../rustdesk\",\n        help=\"The dist directory to install.\",\n    )\n    parser.add_argument(\n",
+     "new": "        \"-d\",\n        \"--dist-dir\",\n        type=str,\n        default=\"../../Corevia Desk\",\n        help=\"The dist directory to install.\",\n    )\n    parser.add_argument(\n"
+    },
+    {
+     "old": "        help='Connection type, e.g. \"incoming\", \"outgoing\". Default is empty, means incoming-outgoing',\n    )\n    parser.add_argument(\n        \"--app-name\", type=str, default=\"RustDesk\", help=\"The app name.\"\n    )\n    parser.add_argument(\n        \"-v\", \"--version\", type=str, default=\"\", help=\"The app version.\"\n",
+     "new": "        help='Connection type, e.g. \"incoming\", \"outgoing\". Default is empty, means incoming-outgoing',\n    )\n    parser.add_argument(\n        \"--app-name\", type=str, default=\"Corevia Desk\", help=\"The app name.\"\n    )\n    parser.add_argument(\n        \"-v\", \"--version\", type=str, default=\"\", help=\"The app version.\"\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "res/osx-dist.sh",
+   "hunks": [
+    {
+     "old": "cd flutter; flutter pub get; cd -\n~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/macos/Runner/bridge_generated.h\n./build.py --flutter\nrm rustdesk-$VERSION.dmg\n# security find-identity -v\ncodesign --force --options runtime -s $MACOS_CODESIGN_IDENTITY --deep --strict ./flutter/build/macos/Build/Products/Release/RustDesk.app -vvv\ncreate-dmg --icon \"RustDesk.app\" 200 190 --hide-extension \"RustDesk.app\" --window-size 800 400 --app-drop-link 600 185 rustdesk-$VERSION.dmg ./flutter/build/macos/Build/Products/Release/RustDesk.app\ncodesign --force --options runtime -s $MACOS_CODESIGN_IDENTITY --deep --strict rustdesk-$VERSION.dmg -vvv\n# notarize the rustdesk-${{ env.VERSION }}.dmg\nrcodesign notary-submit --api-key-path ~/.p12/api-key.json  --staple rustdesk-$VERSION.dmg\n",
+     "new": "cd flutter; flutter pub get; cd -\n~/.cargo/bin/flutter_rust_bridge_codegen --rust-input ./src/flutter_ffi.rs --dart-output ./flutter/lib/generated_bridge.dart --c-output ./flutter/macos/Runner/bridge_generated.h\n./build.py --flutter\nrm corevia-desk-$VERSION.dmg\n# security find-identity -v\ncodesign --force --options runtime -s $MACOS_CODESIGN_IDENTITY --deep --strict ./flutter/build/macos/Build/Products/Release/CoreviaDesk.app -vvv\ncreate-dmg --icon \"CoreviaDesk.app\" 200 190 --hide-extension \"CoreviaDesk.app\" --window-size 800 400 --app-drop-link 600 185 corevia-desk-$VERSION.dmg ./flutter/build/macos/Build/Products/Release/CoreviaDesk.app\ncodesign --force --options runtime -s $MACOS_CODESIGN_IDENTITY --deep --strict corevia-desk-$VERSION.dmg -vvv\n# notarize the corevia-desk-${{ env.VERSION }}.dmg\nrcodesign notary-submit --api-key-path ~/.p12/api-key.json  --staple corevia-desk-$VERSION.dmg\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "res/rustdesk-link.desktop",
+   "hunks": [
+    {
+     "old": "[Desktop Entry]\nName=RustDesk\nNoDisplay=true\nMimeType=x-scheme-handler/rustdesk;\nTryExec=rustdesk\nExec=rustdesk %u\nIcon=rustdesk\nTerminal=false\nType=Application\nStartupNotify=false\nStartupWMClass=rustdesk\n",
+     "new": "[Desktop Entry]\nName=Corevia Desk\nNoDisplay=true\nMimeType=x-scheme-handler/corevia-desk;\nTryExec=rustdesk\nExec=rustdesk %u\nIcon=rustdesk\nTerminal=false\nType=Application\nStartupNotify=false\nStartupWMClass=com.corevia.desk\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "res/rustdesk.desktop",
+   "hunks": [
+    {
+     "old": "[Desktop Entry]\nName=RustDesk\nGenericName=Remote Desktop\nComment=Remote Desktop\nExec=rustdesk %u\n",
+     "new": "[Desktop Entry]\nName=Corevia Desk\nGenericName=Remote Desktop\nComment=Remote Desktop\nExec=rustdesk %u\n"
+    },
+    {
+     "old": "Categories=Network;RemoteAccess;GTK;\nKeywords=internet;linux;dart;rust;remote-control;p2p;teamviewer;rust-lang;rdp;remote-desktop;vnc;\nActions=new-window;\nStartupWMClass=rustdesk\n\nX-Desktop-File-Install-Version=0.23\n\n",
+     "new": "Categories=Network;RemoteAccess;GTK;\nKeywords=internet;linux;dart;rust;remote-control;p2p;teamviewer;rust-lang;rdp;remote-desktop;vnc;\nActions=new-window;\nStartupWMClass=com.corevia.desk\n\nX-Desktop-File-Install-Version=0.23\n\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "res/rustdesk.service",
+   "hunks": [
+    {
+     "old": "[Unit]\nDescription=RustDesk\nRequires=network.target\nAfter=systemd-user-sessions.service\n\n",
+     "new": "[Unit]\nDescription=Corevia Desk\nRequires=network.target\nAfter=systemd-user-sessions.service\n\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "src/auth_2fa.rs",
+   "hunks": [
+    {
+     "old": "    static ref CURRENT_2FA: Mutex<Option<(TOTPInfo, TOTP)>> = Mutex::new(None);\n}\n\nconst ISSUER: &str = \"RustDesk\";\nconst TAG_LOGIN: &str = \"Connection\";\n\n#[derive(Debug, Clone, Default, Serialize, Deserialize)]\n",
+     "new": "    static ref CURRENT_2FA: Mutex<Option<(TOTPInfo, TOTP)>> = Mutex::new(None);\n}\n\nconst ISSUER: &str = \"Corevia Desk\";\nconst TAG_LOGIN: &str = \"Connection\";\n\n#[derive(Debug, Clone, Default, Serialize, Deserialize)]\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "src/platform/privileges_scripts/agent.plist",
+   "hunks": [
+    {
+     "old": "<plist version=\"1.0\">\n    <dict>\n        <key>Label</key>\n        <string>com.carriez.RustDesk_server</string>\n\n\t<key>AssociatedBundleIdentifiers</key>\n\t<string>com.carriez.rustdesk</string>\n    \n        <key>LimitLoadToSessionType</key>\n        <array>\n",
+     "new": "<plist version=\"1.0\">\n    <dict>\n        <key>Label</key>\n        <string>com.corevia.CoreviaDesk_server</string>\n\n\t<key>AssociatedBundleIdentifiers</key>\n\t<string>com.corevia.desk</string>\n    \n        <key>LimitLoadToSessionType</key>\n        <array>\n"
+    },
+    {
+     "old": "        <true />\n        <key>ProgramArguments</key>\n        <array>\n            <string>/Applications/RustDesk.app/Contents/MacOS/RustDesk</string>\n            <string>--server</string>\n        </array>\n        <key>WorkingDirectory</key>\n        <string>/Applications/RustDesk.app/Contents/MacOS/</string>\n        <key>ProcessType</key>\n        <string>Interactive</string>\n    </dict>\n",
+     "new": "        <true />\n        <key>ProgramArguments</key>\n        <array>\n            <string>/Applications/CoreviaDesk.app/Contents/MacOS/CoreviaDesk</string>\n            <string>--server</string>\n        </array>\n        <key>WorkingDirectory</key>\n        <string>/Applications/CoreviaDesk.app/Contents/MacOS/</string>\n        <key>ProcessType</key>\n        <string>Interactive</string>\n    </dict>\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "src/platform/privileges_scripts/daemon.plist",
+   "hunks": [
+    {
+     "old": "<plist version=\"1.0\">\n    <dict>\n        <key>Label</key>\n        <string>com.carriez.RustDesk_service</string>\n\n\t<key>AssociatedBundleIdentifiers</key>\n\t<string>com.carriez.rustdesk</string>\n    \n        <key>KeepAlive</key>\n        <true/>\n",
+     "new": "<plist version=\"1.0\">\n    <dict>\n        <key>Label</key>\n        <string>com.corevia.CoreviaDesk_service</string>\n\n\t<key>AssociatedBundleIdentifiers</key>\n\t<string>com.corevia.desk</string>\n    \n        <key>KeepAlive</key>\n        <true/>\n"
+    },
+    {
+     "old": "        <array>\n        <string>/bin/sh</string>\n        <string>-c</string>\n        <string>/Applications/RustDesk.app/Contents/MacOS/service</string>\n        </array>\n        <key>RunAtLoad</key>\n        <true/>\n        <key>WorkingDirectory</key>\n        <string>/Applications/RustDesk.app/Contents/MacOS/</string>\n        <key>StandardErrorPath</key>\n        <string>/var/log/rustdesk_service.err</string>\n        <key>StandardOutPath</key>\n        <string>/var/log/rustdesk_service.out</string>\n    </dict>\n</plist>\n",
+     "new": "        <array>\n        <string>/bin/sh</string>\n        <string>-c</string>\n        <string>/Applications/CoreviaDesk.app/Contents/MacOS/service</string>\n        </array>\n        <key>RunAtLoad</key>\n        <true/>\n        <key>WorkingDirectory</key>\n        <string>/Applications/CoreviaDesk.app/Contents/MacOS/</string>\n        <key>StandardErrorPath</key>\n        <string>/var/log/corevia_desk_service.err</string>\n        <key>StandardOutPath</key>\n        <string>/var/log/corevia_desk_service.out</string>\n    </dict>\n</plist>\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "src/server/dbus.rs",
+   "hunks": [
+    {
+     "old": "use std::collections::HashMap;\nuse std::{error::Error, fmt, time::Duration};\n\nconst DBUS_NAME: &str = \"org.rustdesk.rustdesk\";\nconst DBUS_PREFIX: &str = \"/dbus\";\nconst DBUS_METHOD_NEW_CONNECTION: &str = \"NewConnection\";\nconst DBUS_METHOD_NEW_CONNECTION_ID: &str = \"id\";\n",
+     "new": "use std::collections::HashMap;\nuse std::{error::Error, fmt, time::Duration};\n\nconst DBUS_NAME: &str = \"org.corevia.desk\";\nconst DBUS_PREFIX: &str = \"/dbus\";\nconst DBUS_METHOD_NEW_CONNECTION: &str = \"NewConnection\";\nconst DBUS_METHOD_NEW_CONNECTION_ID: &str = \"id\";\n"
+    },
+    {
+     "old": "\nimpl fmt::Display for DbusError {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"RustDesk DBus Error: {}\", self.0)\n    }\n}\n\n",
+     "new": "\nimpl fmt::Display for DbusError {\n    fn fmt(&self, f: &mut fmt::Formatter) -> fmt::Result {\n        write!(f, \"Corevia Desk DBus Error: {}\", self.0)\n    }\n}\n\n"
+    },
+    {
+     "old": "/// [Tips]:\n/// How to test by CLI:\n/// - use dbus-send command:\n/// `dbus-send --session --print-reply --dest=org.rustdesk.rustdesk /dbus org.rustdesk.rustdesk.NewConnection string:'PEER_ID'`\npub fn invoke_new_connection(uni_links: String) -> Result<(), Box<dyn Error>> {\n    log::info!(\"Starting dbus service for uni\");\n    let conn = Connection::new_session()?;\n",
+     "new": "/// [Tips]:\n/// How to test by CLI:\n/// - use dbus-send command:\n/// `dbus-send --session --print-reply --dest=org.corevia.desk /dbus org.corevia.desk.NewConnection string:'PEER_ID'`\npub fn invoke_new_connection(uni_links: String) -> Result<(), Box<dyn Error>> {\n    log::info!(\"Starting dbus service for uni\");\n    let conn = Connection::new_session()?;\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "src/whiteboard/linux.rs",
+   "hunks": [
+    {
+     "old": "        };\n\n        let window_attributes = Window::default_attributes()\n            .with_title(\"RustDesk whiteboard\")\n            .with_inner_size(PhysicalSize::new(w, h))\n            .with_position(PhysicalPosition::new(x, y))\n            .with_decorations(false)\n",
+     "new": "        };\n\n        let window_attributes = Window::default_attributes()\n            .with_title(\"Corevia Desk whiteboard\")\n            .with_inner_size(PhysicalSize::new(w, h))\n            .with_position(PhysicalPosition::new(x, y))\n            .with_decorations(false)\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "src/whiteboard/macos.rs",
+   "hunks": [
+    {
+     "old": "        };\n\n        let window_builder = WindowBuilder::new()\n            .with_title(\"RustDesk whiteboard\")\n            .with_transparent(true)\n            .with_decorations(false)\n            .with_position(monitor.position())\n",
+     "new": "        };\n\n        let window_builder = WindowBuilder::new()\n            .with_title(\"Corevia Desk whiteboard\")\n            .with_transparent(true)\n            .with_decorations(false)\n            .with_position(monitor.position())\n"
+    }
+   ]
+  },
+  {
+   "op": "replace",
+   "path": "src/whiteboard/windows.rs",
+   "hunks": [
+    {
+     "old": "\n    let event_loop = EventLoopBuilder::<(String, CustomEvent)>::with_user_event().build();\n    let mut window_builder = WindowBuilder::new()\n        .with_title(\"RustDesk whiteboard\")\n        .with_transparent(true)\n        .with_always_on_top(true)\n        .with_skip_taskbar(true)\n",
+     "new": "\n    let event_loop = EventLoopBuilder::<(String, CustomEvent)>::with_user_event().build();\n    let mut window_builder = WindowBuilder::new()\n        .with_title(\"Corevia Desk whiteboard\")\n        .with_transparent(true)\n        .with_always_on_top(true)\n        .with_skip_taskbar(true)\n"
+    }
+   ]
+  },
+  {
+   "op": "asset",
+   "path": "flutter/windows/runner/resources/app_icon.ico",
+   "asset": "assets/flutter/windows/runner/resources/app_icon.ico"
+  },
+  {
+   "op": "asset",
+   "path": "res/128x128.png",
+   "asset": "assets/res/128x128.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/128x128@2x.png",
+   "asset": "assets/res/128x128@2x.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/32x32.png",
+   "asset": "assets/res/32x32.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/64x64.png",
+   "asset": "assets/res/64x64.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/icon.ico",
+   "asset": "assets/res/icon.ico"
+  },
+  {
+   "op": "asset",
+   "path": "res/icon.png",
+   "asset": "assets/res/icon.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/logo.svg",
+   "asset": "assets/res/logo.svg"
+  },
+  {
+   "op": "asset",
+   "path": "res/mac-icon.png",
+   "asset": "assets/res/mac-icon.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/mac-tray-dark-x2.png",
+   "asset": "assets/res/mac-tray-dark-x2.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/mac-tray-light-x2.png",
+   "asset": "assets/res/mac-tray-light-x2.png"
+  },
+  {
+   "op": "asset",
+   "path": "res/scalable.svg",
+   "asset": "assets/res/scalable.svg"
+  },
+  {
+   "op": "asset",
+   "path": "res/tray-icon.ico",
+   "asset": "assets/res/tray-icon.ico"
+  },
+  {
+   "op": "asset",
+   "path": "src/platform/privileges_scripts/install.scpt",
+   "asset": "assets/src/platform/privileges_scripts/install.scpt"
+  },
+  {
+   "op": "asset",
+   "path": "src/platform/privileges_scripts/uninstall.scpt",
+   "asset": "assets/src/platform/privileges_scripts/uninstall.scpt"
+  },
+  {
+   "op": "asset",
+   "path": "src/platform/privileges_scripts/update.scpt",
+   "asset": "assets/src/platform/privileges_scripts/update.scpt"
+  }
+ ]
+}

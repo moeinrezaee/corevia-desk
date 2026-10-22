@@ -1,0 +1,31 @@
+---
+baseline_ref: c312385ffddd89ce6df4138db49bded31dcce924
+baseline_sha: c312385ffddd89ce6df4138db49bded31dcce924
+legacy_tree: 561951db7a713a43c69e1e15e789aee7cdb1cb91
+legacy_head: c1ba1a5ac5ef812b4c282ead4d6b86a48e2a31df
+patch_sha256: 159a8e9242dd760a6ba76d88b330a20cfc8139d985957d64789b41fb88c976be
+imported_at: '2026-10-22T22:47:47Z'
+overlay:
+- ".corevia"
+relocated:
+- glob: ".corevia/operations/**"
+  reason: Corevia platform operation values with internal hosts and addresses; not
+    part of the public product source.
+  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+- glob: docs/evidence/**
+  reason: Delivery evidence reports naming internal servers, addresses and customer-support
+    hosts.
+  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+- glob: ".gitlab-ci.yml"
+  reason: Internal CI pipeline bound to the Corevia Nexus and runners; the fork pipeline
+    is re-authored with Bridge-held variables (follow-up).
+  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+- glob: docker/full-desk/**
+  reason: Internal Docker build bound to the Corevia registry hostname.
+  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+- glob: release/build-docker-image.mjs
+  reason: Release script bound to the internal Corevia registry hostname.
+  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+- glob: release/test/docker-verify.test.mjs
+  reason: Test of the internal registry release script.
+  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)

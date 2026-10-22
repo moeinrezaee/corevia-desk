@@ -298,20 +298,7 @@ async fn start_query_session_count(sender: std::sync::mpsc::Sender<Data>) {
 }
 
 fn load_icon_from_asset() -> Option<image::DynamicImage> {
-    let Some(path) = std::env::current_exe().map_or(None, |x| x.parent().map(|x| x.to_path_buf()))
-    else {
-        return None;
-    };
-    #[cfg(target_os = "macos")]
-    let path = path.join("../Frameworks/App.framework/Resources/flutter_assets/assets/icon.png");
-    #[cfg(windows)]
-    let path = path.join(r"data\flutter_assets\assets\icon.png");
-    #[cfg(target_os = "linux")]
-    let path = path.join(r"data/flutter_assets/assets/icon.png");
-    if path.exists() {
-        if let Ok(image) = image::open(path) {
-            return Some(image);
-        }
-    }
+    // The active Corevia Desk host embeds the native tray asset. Do not load
+    // a legacy Flutter asset at runtime.
     None
 }

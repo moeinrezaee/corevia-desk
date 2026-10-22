@@ -1,0 +1,38 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Server desktop preview</title>
+  <desc id="desc">A restrained server dashboard with system health bars.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#2c2b2c"/>
+      <stop offset="1" stop-color="#3b3534"/>
+    </linearGradient>
+    <linearGradient id="panel" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#494442"/>
+      <stop offset="1" stop-color="#302f31"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/>
+  <circle cx="80" cy="60" r="112" fill="#c9a780" opacity=".07"/>
+  <rect x="24" y="24" width="592" height="312" rx="22" fill="#19191b" opacity=".84"/>
+  <rect x="44" y="46" width="552" height="30" rx="9" fill="#3a3738"/>
+  <circle cx="62" cy="61" r="4" fill="#c9a780"/>
+  <rect x="78" y="57" width="86" height="8" rx="4" fill="#8f8173"/>
+  <rect x="44" y="94" width="172" height="218" rx="14" fill="#302f31"/>
+  <rect x="64" y="116" width="96" height="10" rx="5" fill="#c9a780" opacity=".74"/>
+  <rect x="64" y="151" width="132" height="22" rx="8" fill="#494442"/>
+  <rect x="76" y="158" width="64" height="8" rx="4" fill="#d0c1ae" opacity=".7"/>
+  <rect x="64" y="185" width="132" height="22" rx="8" fill="#494442"/>
+  <rect x="76" y="192" width="88" height="8" rx="4" fill="#8f8173" opacity=".78"/>
+  <rect x="64" y="219" width="132" height="22" rx="8" fill="#494442"/>
+  <rect x="76" y="226" width="48" height="8" rx="4" fill="#c9a780" opacity=".72"/>
+  <rect x="64" y="267" width="102" height="8" rx="4" fill="#5d5754"/>
+  <rect x="236" y="94" width="360" height="218" rx="14" fill="url(#panel)"/>
+  <rect x="260" y="116" width="144" height="11" rx="5" fill="#d0c1ae" opacity=".72"/>
+  <rect x="260" y="153" width="152" height="54" rx="11" fill="#28282a"/>
+  <rect x="436" y="153" width="136" height="54" rx="11" fill="#28282a"/>
+  <path d="M280 187h112" stroke="#c9a780" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+  <path d="M456 187h86" stroke="#8f8173" stroke-width="7" stroke-linecap="round" opacity=".72"/>
+  <rect x="260" y="229" width="312" height="42" rx="11" fill="#28282a"/>
+  <rect x="282" y="246" width="184" height="8" rx="4" fill="#695f5a"/>
+  <rect x="484" y="246" width="58" height="8" rx="4" fill="#c9a780" opacity=".72"/>
+</svg>

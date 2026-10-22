@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Design desktop preview</title>
+  <desc id="desc">A calm design workspace with a canvas and color swatches.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#28263a"/>
+      <stop offset="1" stop-color="#3a3547"/>
+    </linearGradient>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#e3e0d9"/>
+      <stop offset="1" stop-color="#b7c7c2"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/>
+  <circle cx="82" cy="318" r="110" fill="#b3a7d2" opacity=".08"/>
+  <rect x="24" y="24" width="592" height="312" rx="22" fill="#151522" opacity=".82"/>
+  <rect x="44" y="46" width="552" height="30" rx="9" fill="#2e2d41"/>
+  <circle cx="62" cy="61" r="4" fill="#b3a7d2"/>
+  <rect x="78" y="57" width="82" height="8" rx="4" fill="#766f8c"/>
+  <rect x="180" y="57" width="52" height="8" rx="4" fill="#4b485c"/>
+  <rect x="44" y="94" width="132" height="218" rx="14" fill="#252538"/>
+  <rect x="62" y="116" width="76" height="8" rx="4" fill="#b3a7d2" opacity=".72"/>
+  <rect x="62" y="146" width="82" height="52" rx="10" fill="#36354a"/>
+  <rect x="62" y="214" width="34" height="34" rx="8" fill="#c8bfcf" opacity=".82"/>
+  <rect x="104" y="214" width="34" height="34" rx="8" fill="#849d9d" opacity=".82"/>
+  <rect x="62" y="266" width="76" height="8" rx="4" fill="#4b485c"/>
+  <rect x="196" y="94" width="400" height="218" rx="14" fill="#3b3a49"/>
+  <rect x="218" y="116" width="238" height="154" rx="10" fill="url(#canvas)"/>
+  <rect x="244" y="144" width="120" height="16" rx="8" fill="#6f7d82" opacity=".56"/>
+  <rect x="244" y="174" width="164" height="8" rx="4" fill="#98aaa8"/>
+  <rect x="244" y="192" width="139" height="8" rx="4" fill="#9eaeab"/>
+  <circle cx="418" cy="148" r="20" fill="#b3a7d2" opacity=".74"/>
+  <rect x="480" y="116" width="94" height="154" rx="10" fill="#2b2a3a"/>
+  <circle cx="505" cy="145" r="11" fill="#c9b8c9"/>
+  <circle cx="538" cy="145" r="11" fill="#8ca3a5"/>
+  <circle cx="505" cy="180" r="11" fill="#b3a7d2" opacity=".82"/>
+  <circle cx="538" cy="180" r="11" fill="#687688"/>
+  <rect x="498" y="218" width="54" height="8" rx="4" fill="#5c5a70"/>
+</svg>

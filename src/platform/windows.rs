@@ -548,6 +548,14 @@ fn fix_cursor_mask(
 
 define_windows_service!(ffi_service_main, service_main);
 
+// Keep the branded display name (`Corevia Desk`) for users, but use a stable
+// service identifier without spaces. The two product profiles must also be
+// able to coexist on the same Windows host.
+#[cfg(feature = "corevia-customer-support")]
+const WINDOWS_SERVICE_NAME: &str = "CoreviaDeskCustomerSupport";
+#[cfg(not(feature = "corevia-customer-support"))]
+const WINDOWS_SERVICE_NAME: &str = "CoreviaDeskFullDesk";
+
 fn service_main(arguments: Vec<OsString>) {
     if let Err(e) = run_service(arguments) {
         log::error!("run_service failed: {}", e);
@@ -556,7 +564,7 @@ fn service_main(arguments: Vec<OsString>) {
 
 pub fn start_os_service() {
     if let Err(e) =
-        windows_service::service_dispatcher::start(crate::get_app_name(), ffi_service_main)
+        windows_service::service_dispatcher::start(WINDOWS_SERVICE_NAME, ffi_service_main)
     {
         log::error!("start_service failed: {}", e);
     }
@@ -677,7 +685,7 @@ async fn run_service(_arguments: Vec<OsString>) -> ResultType<()> {
     };
 
     // Register system service event handler
-    let status_handle = service_control_handler::register(crate::get_app_name(), event_handler)?;
+    let status_handle = service_control_handler::register(WINDOWS_SERVICE_NAME, event_handler)?;
 
     let next_status = ServiceStatus {
         // Should match the one from system service registry
@@ -1797,8 +1805,8 @@ fn get_before_uninstall(kill_self: bool) -> String {
     format!(
         "
     chcp 65001
-    sc stop {app_name}
-    sc delete {app_name}
+    sc stop {service_name}
+    sc delete {service_name}
     taskkill /F /IM {broker_exe}
     taskkill /F /IM {app_name}.exe{filter}
     reg delete HKEY_CLASSES_ROOT\\.{ext} /f
@@ -1806,6 +1814,8 @@ fn get_before_uninstall(kill_self: bool) -> String {
     netsh advfirewall firewall delete rule name=\"{app_name} Service\"
     ",
         broker_exe = WIN_TOPMOST_INJECTED_PROCESS_EXE,
+        service_name = WINDOWS_SERVICE_NAME,
+        app_name = app_name,
     )
 }
 
@@ -2213,29 +2223,27 @@ unsafe fn set_default_dll_directories() -> bool {
 }
 
 fn get_custom_icon(install_dir: &str, exe: &str) -> Option<String> {
-    const RELATIVE_ICON_PATH: &str = "data\\flutter_assets\\assets\\icon.ico";
-    if crate::is_custom_client() {
-        if let Some(p) = PathBuf::from(exe).parent() {
-            let alter_icon_path = p.join(RELATIVE_ICON_PATH);
-            if alter_icon_path.exists() {
-                // During installation, files under `install_dir` may not exist yet.
-                // So we validate the icon from the current executable directory first.
-                // But for shortcut/registry icon location, we should point to the final
-                // installed path so the icon works across different Windows users.
-                if let Ok(metadata) = std::fs::symlink_metadata(&alter_icon_path) {
-                    if metadata.is_symlink() {
-                        log::warn!(
-                            "Custom icon at {:?} is a symlink, refusing to use it.",
-                            alter_icon_path
-                        );
-                        return None;
-                    }
-                    if metadata.is_file() {
-                        return if install_dir.is_empty() {
-                            Some(alter_icon_path.to_string_lossy().to_string())
-                        } else {
-                            Some(format!("{}\\{}", install_dir, RELATIVE_ICON_PATH))
-                        };
+    const RELATIVE_ICON_PATH: &str = "data\\corevia_assets\\icon.ico";
+    if let Some(p) = PathBuf::from(exe).parent() {
+        let alter_icon_path = p.join(RELATIVE_ICON_PATH);
+        if alter_icon_path.exists() {
+            // During installation, files under `install_dir` may not exist yet.
+            // So we validate the icon from the current executable directory first.
+            // But for shortcut/registry icon location, we should point to the final
+            // installed path so the icon works across different Windows users.
+            if let Ok(metadata) = std::fs::symlink_metadata(&alter_icon_path) {
+                if metadata.is_symlink() {
+                    log::warn!(
+                        "Corevia icon at {:?} is a symlink, refusing to use it.",
+                        alter_icon_path
+                    );
+                    return None;
+                }
+                if metadata.is_file() {
+                    return if install_dir.is_empty() {
+                        Some(alter_icon_path.to_string_lossy().to_string())
+                    } else {
+                        Some(format!("{}\\{}", install_dir, RELATIVE_ICON_PATH))
                     }
                 }
             }
@@ -3289,13 +3297,14 @@ pub fn uninstall_service(show_new_window: bool, _: bool) -> bool {
     let cmds = format!(
         "
     chcp 65001
-    sc stop {app_name}
-    sc delete {app_name}
+    sc stop {service_name}
+    sc delete {service_name}
     if exist \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\{app_name} Tray.lnk\" del /f /q \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\{app_name} Tray.lnk\"
     taskkill /F /IM {broker_exe}
     taskkill /F /IM {app_name}.exe{filter}
     ",
         app_name = crate::get_app_name(),
+        service_name = WINDOWS_SERVICE_NAME,
         broker_exe = WIN_TOPMOST_INJECTED_PROCESS_EXE,
     );
     if let Err(err) = run_cmds(cmds, false, "uninstall") {
@@ -3518,7 +3527,7 @@ reg add {subkey} /f /v EstimatedSize /t REG_DWORD /d {size}
 
     let filter = format!(" /FI \"PID ne {}\"", get_current_pid());
     let restore_service_cmd = if is_service_running {
-        format!("sc start {}", &app_name)
+        format!("sc start {}", WINDOWS_SERVICE_NAME)
     } else {
         "".to_owned()
     };
@@ -3550,7 +3559,7 @@ reg add {subkey} /f /v EstimatedSize /t REG_DWORD /d {size}
     let cmds = format!(
         "
 chcp 65001
-sc stop {app_name}
+sc stop {service_name}
 taskkill /F /IM {app_name}.exe{filter}
 {reg_cmd}
 {copy_exe}
@@ -3562,6 +3571,7 @@ taskkill /F /IM {app_name}.exe{filter}
 {sleep}
     ",
         app_name = app_name,
+        service_name = WINDOWS_SERVICE_NAME,
         copy_exe = copy_exe_cmd(&src_exe, &exe, &path)?,
         rename_exe = rename_exe_cmd(&src_exe, &path)?,
         remove_meta_toml = remove_meta_toml_cmd(is_msi.unwrap_or(true), &path),
@@ -3926,14 +3936,15 @@ fn get_import_config(exe: &str) -> String {
     let config_path = Config::file();
     let config_path = escape_nested_cmd_ampersands(config_path.to_str().unwrap_or(""));
     format!("
-sc stop {app_name}
-sc delete {app_name}
-sc create {app_name} binpath= \"\\\"{exe}\\\" --import-config \\\"{config_path}\\\"\" start= auto DisplayName= \"{app_name} Service\"
-sc start {app_name}
-sc stop {app_name}
-sc delete {app_name}
+sc stop {service_name}
+sc delete {service_name}
+sc create {service_name} binpath= \"\\\"{exe}\\\" --import-config \\\"{config_path}\\\"\" start= auto DisplayName= \"{app_name} Service\"
+sc start {service_name}
+sc stop {service_name}
+sc delete {service_name}
 ",
     app_name = crate::get_app_name(),
+    service_name = WINDOWS_SERVICE_NAME,
 )
 }
 
@@ -3949,10 +3960,11 @@ if exist \"%PROGRAMDATA%\\Microsoft\\Windows\\Start Menu\\Programs\\Startup\\{ap
     } else {
         let exe = escape_nested_cmd_ampersands(exe);
         format!("
-sc create {app_name} binpath= \"\\\"{exe}\\\" --service\" start= auto DisplayName= \"{app_name} Service\"
-sc start {app_name}
+sc create {service_name} binpath= \"\\\"{exe}\\\" --service\" start= auto DisplayName= \"{app_name} Service\"
+sc start {service_name}
 ",
-    app_name = crate::get_app_name())
+    app_name = crate::get_app_name(),
+    service_name = WINDOWS_SERVICE_NAME)
     }
 }
 
@@ -4161,7 +4173,7 @@ fn get_uninstall_amyuni_idd() -> String {
 
 #[inline]
 pub fn is_self_service_running() -> bool {
-    is_service_running(&crate::get_app_name())
+    is_service_running(WINDOWS_SERVICE_NAME)
 }
 
 pub fn is_service_running(service_name: &str) -> bool {

@@ -1,0 +1,1210 @@
+/*
+ * Nuxt composition layer for the Corevia Desk visual source.
+ *
+ * The long-form glass, spacing, responsive, and state rules live in
+ * corevia-desk.css, copied from ../corevia-desk-ui. This file only contains
+ * the small amount of Vue-specific composition glue; it must not become a
+ * second design system.
+ */
+
+:root {
+  --corevia-focus: rgb(var(--cyan));
+}
+
+html,
+body,
+#__nuxt {
+  min-height: 100%;
+}
+
+body {
+  min-height: 100vh;
+}
+
+/* NuxtLink is navigation, not an inline text citation. Keep the visual source
+ * clean in both directions and on every breakpoint. */
+
+.corevia-nuxt-app a,
+.corevia-nuxt-app a:visited,
+.corevia-nuxt-app a:hover,
+.corevia-nuxt-app a:active {
+  text-decoration: none !important;
+}
+
+button:focus-visible,
+input:focus-visible,
+a:focus-visible,
+[tabindex]:focus-visible {
+  outline: 2px solid var(--corevia-focus);
+  outline-offset: 3px;
+}
+
+.corevia-nuxt-app {
+  min-height: 100vh;
+}
+
+.corevia-nuxt-app .app-shell {
+  padding-bottom: 34px;
+}
+
+.corevia-page-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.corevia-page-heading {
+  min-height: 246px;
+}
+
+.corevia-page-heading .heading-actions {
+  margin-top: 20px;
+}
+
+.corevia-page-heading .local-identity-card {
+  align-self: stretch;
+}
+
+.corevia-page-heading .local-identity-card .identity-card-heading {
+  margin-bottom: 16px;
+}
+
+.corevia-mode-note {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  margin-top: 20px;
+  border: 1px solid rgb(var(--purple) / .3);
+  border-radius: 999px;
+  background: rgb(var(--purple) / .1);
+  color: rgb(var(--purple));
+  padding: 8px 11px;
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.corevia-mode-note .corevia-icon-glyph {
+  font-size: .85rem;
+}
+
+.corevia-icon-glyph {
+  display: inline-block;
+  line-height: 1;
+  vertical-align: middle;
+}
+
+.corevia-topbar-button {
+  min-width: 40px;
+}
+
+.corevia-topbar-button.is-active {
+  border-color: rgb(var(--cyan) / .35);
+  background: rgb(var(--cyan) / .1);
+  color: rgb(var(--text));
+}
+
+.corevia-icon-button-label {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+}
+
+.corevia-inspector-card {
+  min-height: 0;
+}
+
+.corevia-inspector-card .inspector-card-top {
+  align-items: flex-start;
+}
+
+.corevia-inspector-card .inspector-card-top > span:last-child {
+  flex: 0 0 auto;
+}
+
+.corevia-inspector-card .inspector-progress {
+  margin-top: 18px;
+}
+
+.corevia-inspector-card .inspector-footnote {
+  margin-top: 18px;
+}
+
+.corevia-capability-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.corevia-capability-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  border: 1px solid rgb(var(--line) / .3);
+  border-radius: 999px;
+  background: rgb(var(--panel-2) / .34);
+  color: rgb(var(--muted));
+  padding: 5px 8px;
+  font-size: .61rem;
+  font-weight: 700;
+}
+
+.corevia-capability-chip.is-allowed {
+  border-color: rgb(var(--core) / .26);
+  background: rgb(var(--core) / .08);
+  color: rgb(var(--core));
+}
+
+.corevia-capability-chip.is-locked {
+  color: rgb(var(--subtle));
+}
+
+.corevia-capability-chip .corevia-icon-glyph {
+  font-size: .78rem;
+}
+
+.corevia-connection-hint .corevia-icon-glyph {
+  flex: 0 0 auto;
+  color: rgb(var(--cyan));
+}
+
+.corevia-identity-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  justify-content: center;
+  gap: 12px;
+  border: 1px solid rgb(var(--line) / .3);
+  border-radius: 20px;
+  background: linear-gradient(150deg, rgb(var(--panel-2) / .54), rgb(var(--void) / .38));
+  padding: 16px;
+}
+
+.corevia-identity-card .identity-card-heading {
+  display: flex;
+  align-items: center;
+  gap: 9px;
+}
+
+.corevia-identity-card .identity-icon {
+  display: grid;
+  width: 36px;
+  height: 36px;
+  place-items: center;
+  border: 1px solid rgb(var(--core) / .34);
+  border-radius: 12px;
+  background: rgb(var(--core) / .1);
+  color: rgb(var(--core));
+}
+
+.corevia-identity-card .identity-card-heading > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.corevia-identity-card .identity-card-heading strong {
+  font-size: .75rem;
+  font-weight: 800;
+}
+
+.corevia-identity-card .identity-card-heading small {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  max-width: 100%;
+  min-width: 0;
+  color: rgb(var(--muted));
+  font-size: .61rem;
+  line-height: 1.3;
+  white-space: normal;
+}
+
+.corevia-identity-card .identity-card-heading .status-dot {
+  width: 5px;
+  height: 5px;
+}
+
+.corevia-identity-card .identity-field {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  border-top: 1px solid rgb(var(--line) / .2);
+  padding-top: 10px;
+}
+
+.corevia-identity-card .identity-field > span:first-child {
+  color: rgb(var(--muted));
+  font-size: .61rem;
+}
+
+.corevia-identity-card .code-value {
+  min-width: 0;
+  flex: 1;
+  color: rgb(var(--text));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .76rem;
+  font-weight: 800;
+  letter-spacing: .04em;
+  text-align: end;
+}
+
+.corevia-copy-button {
+  display: inline-grid;
+  width: 26px;
+  height: 26px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(var(--line) / .26);
+  border-radius: 9px;
+  background: rgb(255 255 255 / .05);
+  color: rgb(var(--muted));
+  cursor: pointer;
+}
+
+.corevia-copy-button:hover {
+  border-color: rgb(var(--cyan) / .4);
+  color: rgb(var(--text));
+}
+
+.corevia-copy-button:focus-visible {
+  outline: 2px solid rgb(var(--cyan) / .78);
+  outline-offset: 2px;
+}
+
+.corevia-copy-button:disabled {
+  color: rgb(var(--muted) / .58);
+  cursor: not-allowed;
+  opacity: .48;
+}
+
+.corevia-summary-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.corevia-stat-card {
+  display: flex;
+  min-height: 83px;
+  align-items: center;
+  gap: 10px;
+  padding: 13px;
+}
+
+.corevia-stat-card .stat-icon {
+  flex: 0 0 auto;
+}
+
+.corevia-stat-card .stat-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.corevia-stat-card .stat-copy small {
+  color: rgb(var(--muted));
+  font-size: .64rem;
+}
+
+.corevia-stat-card .stat-copy strong {
+  color: rgb(var(--text));
+  font-size: 1rem;
+  font-weight: 800;
+}
+
+.corevia-device-card {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  padding: 0;
+}
+
+.corevia-device-card .device-card-media {
+  height: 132px;
+}
+
+.corevia-device-card .device-card-body {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 12px;
+  padding: 14px;
+}
+
+.corevia-device-card .device-card-title {
+  display: flex;
+  min-width: 0;
+  align-items: flex-start;
+  gap: 9px;
+}
+
+.corevia-device-card .device-card-title > span:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.corevia-device-card .device-card-title strong {
+  overflow: hidden;
+  color: rgb(var(--text));
+  font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  font-size: .76rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corevia-device-card .device-card-title small {
+  color: rgb(var(--muted));
+  font-size: .62rem;
+}
+
+.corevia-device-card .device-card-tags {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 7px;
+  margin: 0;
+}
+
+.corevia-device-card .device-card-footer {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  margin: auto 0 0;
+  color: rgb(var(--muted));
+  font-size: .61rem;
+}
+
+.corevia-action-list {
+  display: flex;
+  flex-direction: column;
+  gap: 7px;
+  margin-top: 15px;
+}
+
+.corevia-action-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  border: 1px solid transparent;
+  border-radius: 13px;
+  background: rgb(var(--panel-2) / .28);
+  color: inherit;
+  cursor: pointer;
+  padding: 8px;
+  text-align: start;
+  transition: border-color .2s ease, background .2s ease, transform .2s ease;
+}
+
+.corevia-action-item:hover {
+  border-color: rgb(var(--line) / .38);
+  background: rgb(255 255 255 / .07);
+  transform: translateX(-2px);
+}
+
+html[dir='ltr'] .corevia-action-item:hover {
+  transform: translateX(2px);
+}
+
+.corevia-action-item > span:nth-child(2) {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.corevia-action-item strong {
+  overflow: hidden;
+  color: rgb(var(--text));
+  font-size: .68rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corevia-action-item small {
+  overflow: hidden;
+  color: rgb(var(--muted));
+  font-size: .58rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corevia-action-item > .corevia-icon-glyph:last-child {
+  color: rgb(var(--subtle));
+}
+
+.corevia-section-heading {
+  margin-top: 7px;
+}
+
+.corevia-section-heading h2 {
+  margin-top: 5px;
+  color: rgb(var(--text));
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.corevia-recent-grid {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: 12px;
+}
+
+.corevia-incoming-card {
+  display: grid;
+  grid-template-columns: minmax(0, 1fr) auto;
+  gap: 20px;
+  align-items: center;
+  padding: 20px;
+}
+
+.corevia-nuxt-app .customer-capture-notice {
+  display: flex;
+  align-items: flex-start;
+  gap: 12px;
+  padding: 14px 16px;
+  border-color: rgb(var(--orange) / .24);
+  background: linear-gradient(135deg, rgb(var(--orange) / .07), rgb(var(--panel) / .42));
+  box-shadow: 0 18px 52px rgb(var(--shadow-color) / .16), inset 0 1px 0 rgb(var(--orange) / .06);
+}
+
+.corevia-nuxt-app .customer-capture-notice::after {
+  box-shadow: inset 0 0 0 1px rgb(var(--orange) / .08);
+}
+
+.corevia-nuxt-app .customer-capture-notice-icon {
+  display: grid;
+  width: 34px;
+  height: 34px;
+  flex: 0 0 34px;
+  place-items: center;
+  border: 1px solid rgb(var(--orange) / .22);
+  border-radius: 11px;
+  background: rgb(var(--orange) / .08);
+  color: rgb(var(--orange));
+}
+
+.customer-capture-notice > span:last-child {
+  display: grid;
+  gap: 4px;
+  min-width: 0;
+}
+
+.customer-capture-notice strong {
+  color: rgb(var(--text));
+  font-size: .78rem;
+  font-weight: 800;
+}
+
+.customer-capture-notice small {
+  color: rgb(var(--muted));
+  font-size: .68rem;
+  line-height: 1.7;
+}
+
+.customer-capture-notice-actions {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 8px 12px;
+  margin-top: 8px;
+}
+
+.customer-capture-notice-actions > small {
+  flex: 1 1 220px;
+}
+
+.corevia-incoming-copy h2 {
+  margin-top: 6px;
+  color: rgb(var(--text));
+  font-size: 1.1rem;
+  font-weight: 800;
+}
+
+.corevia-incoming-copy p {
+  max-width: 640px;
+  margin-top: 8px;
+  color: rgb(var(--muted));
+  font-size: .72rem;
+  line-height: 1.8;
+}
+
+.corevia-requester {
+  display: inline-flex;
+  align-items: center;
+  gap: 9px;
+  margin-top: 17px;
+}
+
+.corevia-requester-copy {
+  display: flex;
+  flex-direction: column;
+  gap: 1px;
+}
+
+.corevia-requester-copy strong {
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.corevia-requester-copy small {
+  color: rgb(var(--muted));
+  font-size: .6rem;
+}
+
+.corevia-requester-avatar {
+  display: grid;
+  width: 38px;
+  height: 38px;
+  place-items: center;
+  border: 1px solid rgb(var(--purple) / .35);
+  border-radius: 13px;
+  background: rgb(var(--purple) / .12);
+  color: rgb(var(--purple));
+}
+
+.corevia-incoming-actions {
+  display: flex;
+  min-width: 195px;
+  flex-direction: column;
+  align-items: stretch;
+  gap: 10px;
+}
+
+.corevia-request-status {
+  display: inline-flex;
+  align-items: center;
+  gap: 7px;
+  color: rgb(var(--core));
+  font-size: .65rem;
+  font-weight: 800;
+}
+
+.corevia-request-status.is-muted {
+  color: rgb(var(--muted));
+}
+
+.corevia-access-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 6px;
+}
+
+.corevia-access-chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  border: 1px solid rgb(var(--line) / .26);
+  border-radius: 999px;
+  background: rgb(var(--panel-2) / .35);
+  color: rgb(var(--muted));
+  padding: 5px 7px;
+  font-size: .58rem;
+  font-weight: 700;
+}
+
+.corevia-deny-button {
+  justify-content: center;
+}
+
+.corevia-activity-card {
+  padding: 19px;
+}
+
+.corevia-activity-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 11px;
+}
+
+.corevia-activity-item {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  gap: 9px;
+  padding: 9px 0;
+}
+
+.corevia-activity-item + .corevia-activity-item {
+  border-top: 1px solid rgb(var(--line) / .18);
+}
+
+.corevia-activity-copy {
+  display: flex;
+  min-width: 0;
+  flex: 1;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.corevia-activity-copy strong {
+  overflow: hidden;
+  color: rgb(var(--text));
+  font-size: .68rem;
+  font-weight: 800;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corevia-activity-copy small {
+  overflow: hidden;
+  color: rgb(var(--muted));
+  font-size: .59rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.corevia-settings-page {
+  display: flex;
+  flex-direction: column;
+  gap: 16px;
+}
+
+.corevia-settings-intro {
+  padding: 25px 30px;
+}
+
+.corevia-settings-intro h1 {
+  margin-top: 10px;
+  color: rgb(var(--text));
+  font-size: clamp(1.7rem, 3vw, 2.8rem);
+  font-weight: 800;
+  line-height: 1.2;
+}
+
+.corevia-settings-intro p {
+  max-width: 690px;
+  margin-top: 10px;
+  color: rgb(var(--muted));
+  font-size: .76rem;
+  line-height: 1.9;
+}
+
+.corevia-settings-layout {
+  display: grid;
+  grid-template-areas: 'settings-nav settings-content';
+  grid-template-columns: 205px minmax(0, 1fr);
+  gap: 14px;
+}
+
+html[dir='rtl'] .corevia-settings-layout {
+  grid-template-areas: 'settings-content settings-nav';
+  grid-template-columns: minmax(0, 1fr) 205px;
+}
+
+.corevia-settings-nav {
+  display: flex;
+  grid-area: settings-nav;
+  flex-direction: column;
+  gap: 5px;
+  padding: 12px;
+}
+
+.corevia-settings-nav .settings-nav-item {
+  width: 100%;
+}
+
+.corevia-settings-content {
+  grid-area: settings-content;
+  min-width: 0;
+}
+
+.corevia-settings-layout > .settings-content {
+  grid-area: settings-content;
+}
+
+.corevia-settings-panel {
+  padding: 21px;
+}
+
+.corevia-settings-panel h2 {
+  margin-top: 5px;
+  color: rgb(var(--text));
+  font-size: 1.05rem;
+  font-weight: 800;
+}
+
+.corevia-settings-panel > p {
+  margin-top: 7px;
+  color: rgb(var(--muted));
+  font-size: .7rem;
+  line-height: 1.8;
+}
+
+.corevia-setting-list {
+  display: flex;
+  flex-direction: column;
+  margin-top: 15px;
+}
+
+.corevia-setting-row {
+  display: flex;
+  min-width: 0;
+  align-items: center;
+  justify-content: space-between;
+  gap: 18px;
+  border-top: 1px solid rgb(var(--line) / .2);
+  padding: 14px 0;
+}
+
+.corevia-setting-row > span:first-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 3px;
+}
+
+.corevia-setting-row strong {
+  color: rgb(var(--text));
+  font-size: .72rem;
+  font-weight: 800;
+}
+
+.corevia-setting-row small {
+  color: rgb(var(--muted));
+  font-size: .63rem;
+  line-height: 1.7;
+}
+
+.corevia-setting-row .text-input {
+  max-width: 260px;
+}
+
+.corevia-toggle {
+  position: relative;
+  display: inline-flex;
+  width: 41px;
+  height: 24px;
+  flex: 0 0 auto;
+  align-items: center;
+  border: 1px solid rgb(var(--line) / .4);
+  border-radius: 999px;
+  background: rgb(var(--panel-2) / .7);
+  cursor: pointer;
+  padding: 2px;
+}
+
+.corevia-toggle::after {
+  width: 18px;
+  height: 18px;
+  border-radius: 50%;
+  background: rgb(var(--muted));
+  content: '';
+  transition: transform .2s ease, background .2s ease;
+}
+
+.corevia-toggle.is-on {
+  border-color: rgb(var(--core) / .45);
+  background: rgb(var(--core) / .14);
+}
+
+.corevia-toggle.is-on::after {
+  background: rgb(var(--core));
+  transform: translateX(17px);
+}
+
+html[dir='rtl'] .corevia-toggle.is-on::after {
+  transform: translateX(-17px);
+}
+
+.corevia-lock-callout {
+  display: flex;
+  align-items: flex-start;
+  gap: 9px;
+  margin-top: 16px;
+  border: 1px solid rgb(var(--purple) / .26);
+  border-radius: 14px;
+  background: rgb(var(--purple) / .08);
+  color: rgb(var(--muted));
+  padding: 11px;
+  font-size: .65rem;
+  line-height: 1.75;
+}
+
+.corevia-lock-callout .corevia-icon-glyph {
+  flex: 0 0 auto;
+  color: rgb(var(--purple));
+}
+
+.corevia-dialog-backdrop {
+  position: fixed;
+  z-index: 40;
+  inset: 0;
+  display: grid;
+  place-items: center;
+  background: rgb(3 5 10 / .68);
+  backdrop-filter: blur(10px);
+  -webkit-backdrop-filter: blur(10px);
+  padding: 18px;
+}
+
+.corevia-dialog {
+  width: min(560px, 100%);
+  max-height: min(720px, calc(100vh - 36px));
+  overflow: auto;
+  padding: 22px;
+}
+
+.corevia-dialog-heading {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 16px;
+}
+
+.corevia-dialog-heading h2 {
+  margin-top: 7px;
+  color: rgb(var(--text));
+  font-size: 1.25rem;
+  font-weight: 800;
+}
+
+.corevia-dialog-heading p {
+  margin-top: 7px;
+  color: rgb(var(--muted));
+  font-size: .7rem;
+  line-height: 1.8;
+}
+
+.corevia-dialog-close {
+  flex: 0 0 auto;
+}
+
+.corevia-connection-card.is-dialog {
+  grid-template-areas: 'form' 'hint';
+  grid-template-columns: minmax(0, 1fr);
+}
+
+html[dir='rtl'] .corevia-connection-card.is-dialog {
+  grid-template-areas: 'form' 'hint';
+  grid-template-columns: minmax(0, 1fr);
+}
+
+.corevia-permission-options {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  margin-top: 18px;
+}
+
+.corevia-permission-option {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  border: 1px solid rgb(var(--line) / .24);
+  border-radius: 14px;
+  background: rgb(var(--panel-2) / .24);
+  cursor: pointer;
+  padding: 11px;
+}
+
+.corevia-permission-option.is-checked {
+  border-color: rgb(var(--core) / .32);
+  background: rgb(var(--core) / .08);
+}
+
+.corevia-permission-option input {
+  position: absolute;
+  opacity: 0;
+  pointer-events: none;
+}
+
+.corevia-permission-option > span:last-child {
+  display: flex;
+  min-width: 0;
+  flex-direction: column;
+  gap: 2px;
+}
+
+.corevia-permission-option strong {
+  color: rgb(var(--text));
+  font-size: .7rem;
+  font-weight: 800;
+}
+
+.corevia-permission-option small {
+  color: rgb(var(--muted));
+  font-size: .61rem;
+  line-height: 1.7;
+}
+
+.corevia-permission-mark {
+  display: grid;
+  width: 24px;
+  height: 24px;
+  flex: 0 0 auto;
+  place-items: center;
+  border: 1px solid rgb(var(--line) / .38);
+  border-radius: 8px;
+  color: transparent;
+}
+
+.corevia-permission-option.is-checked .corevia-permission-mark {
+  border-color: rgb(var(--core) / .5);
+  background: rgb(var(--core));
+  color: rgb(4 31 24);
+}
+
+.corevia-dialog-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 8px;
+  margin-top: 20px;
+}
+
+.corevia-notification-region {
+  position: fixed;
+  z-index: 70;
+  inset-inline-end: 22px;
+  bottom: 22px;
+  width: min(390px, calc(100% - 44px));
+  pointer-events: none;
+}
+
+.corevia-notification-list {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+}
+
+.corevia-notification {
+  --notification-rgb: var(--cyan);
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: start;
+  gap: 10px;
+  border: 1px solid rgb(var(--notification-rgb) / .34);
+  border-radius: 15px;
+  background: rgb(var(--panel) / .95);
+  box-shadow: 0 18px 45px rgb(0 0 0 / .24), inset 0 1px 0 rgb(255 255 255 / .1);
+  color: rgb(var(--text));
+  font-size: .68rem;
+  line-height: 1.7;
+  padding: 11px 12px;
+  pointer-events: auto;
+  backdrop-filter: blur(18px);
+  -webkit-backdrop-filter: blur(18px);
+}
+
+.corevia-notification.is-success { --notification-rgb: var(--core); }
+.corevia-notification.is-warning { --notification-rgb: 232 164 58; }
+.corevia-notification.is-danger { --notification-rgb: var(--danger); }
+.corevia-notification.is-info { --notification-rgb: var(--cyan); }
+
+.corevia-notification-icon {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 9px;
+  background: rgb(var(--notification-rgb) / .13);
+  color: rgb(var(--notification-rgb));
+}
+
+.corevia-notification-message {
+  min-width: 0;
+  padding-top: 2px;
+}
+
+.corevia-notification-dismiss {
+  display: grid;
+  width: 26px;
+  height: 26px;
+  place-items: center;
+  border-radius: 8px;
+  color: rgb(var(--muted));
+}
+
+.corevia-notification-dismiss:hover,
+.corevia-notification-dismiss:focus-visible {
+  background: rgb(var(--notification-rgb) / .11);
+  color: rgb(var(--notification-rgb));
+}
+
+.corevia-notification-enter-active,
+.corevia-notification-leave-active {
+  transition: opacity .2s ease, transform .2s ease;
+}
+
+.corevia-notification-enter-from,
+.corevia-notification-leave-to {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@media (max-width: 640px) {
+  .corevia-notification-region {
+    inset-inline: 16px;
+    bottom: 82px;
+    width: auto;
+  }
+}
+
+.corevia-compact-note {
+  color: rgb(var(--muted));
+  font-size: .63rem;
+  line-height: 1.8;
+}
+
+.corevia-empty-state {
+  display: grid;
+  min-height: 250px;
+  place-items: center;
+  border: 1px dashed rgb(var(--line) / .35);
+  border-radius: var(--radius-lg);
+  color: rgb(var(--muted));
+  padding: 24px;
+  text-align: center;
+}
+
+.corevia-empty-state > span {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  gap: 8px;
+}
+
+.corevia-empty-state .corevia-icon-glyph {
+  display: inline-flex;
+  flex: 0 0 40px;
+  width: 40px;
+  height: 40px;
+  align-items: center;
+  justify-content: center;
+  box-sizing: border-box;
+  border: 1px solid rgb(var(--cyan) / .3);
+  border-radius: 13px;
+  background: rgb(var(--cyan) / .1);
+  color: rgb(var(--cyan));
+  line-height: 1;
+  text-align: center;
+}
+
+@media (max-width: 900px) {
+  .corevia-page-heading {
+    grid-template-columns: minmax(0, 1fr) 214px;
+  }
+
+  html[dir='rtl'] .corevia-page-heading {
+    grid-template-columns: 214px minmax(0, 1fr);
+  }
+
+  .corevia-recent-grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 700px) {
+  .corevia-page-heading,
+  html[dir='rtl'] .corevia-page-heading {
+    display: flex;
+    min-height: 0;
+    flex-direction: column;
+    align-items: stretch;
+    gap: 20px;
+    padding: 21px;
+  }
+
+  .corevia-page-heading .local-identity-card {
+    width: 100%;
+  }
+
+  .corevia-summary-grid,
+  .corevia-recent-grid {
+    grid-template-columns: 1fr;
+  }
+
+  .corevia-incoming-card {
+    display: flex;
+    flex-direction: column;
+    align-items: stretch;
+    padding: 17px;
+  }
+
+  .corevia-incoming-actions {
+    min-width: 0;
+  }
+
+  .corevia-connect-form {
+    grid-template-columns: 1fr;
+  }
+
+  .corevia-settings-layout,
+  html[dir='rtl'] .corevia-settings-layout {
+    display: flex;
+    flex-direction: column;
+  }
+
+  .corevia-settings-nav {
+    display: grid;
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+
+  .corevia-setting-row {
+    align-items: flex-start;
+  }
+}
+
+@media (max-width: 520px) {
+  .app-shell {
+    padding: 10px;
+  }
+
+  .topbar {
+    min-height: 62px;
+    padding: 9px;
+  }
+
+  .topbar-center {
+    justify-content: flex-end;
+  }
+
+  .topbar-center .mode-indicator {
+    display: none;
+  }
+
+  .brand-name {
+    font-size: .9rem;
+  }
+
+  .brand-product {
+    font-size: .6rem;
+  }
+
+  .corevia-settings-intro {
+    padding: 21px;
+  }
+
+  .corevia-settings-nav {
+    grid-template-columns: 1fr;
+  }
+
+  .corevia-dialog-actions {
+    flex-direction: column-reverse;
+  }
+
+  .corevia-dialog-actions .button {
+    width: 100%;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    scroll-behavior: auto !important;
+    transition-duration: .01ms !important;
+    animation-duration: .01ms !important;
+  }
+}

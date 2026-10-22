@@ -1,0 +1,6 @@
+---
+skills:
+  - name: corevia-run
+    source: ../corevia-standards/bin/corevia-run
+  - name: corevia-roadmap-create-or-update
+    source: ../corevia-standards/skills/generated/corevia-roadmap-create-or-update/SKILL.md

@@ -24,6 +24,26 @@ pub mod remote;
 #[allow(dead_code)]
 type Status = (i32, bool, i64, String);
 
+fn authorize_sciter_command(
+    capability: crate::corevia_acl::Capability,
+    approval_reference: Option<&str>,
+) -> bool {
+    crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest {
+        surface: crate::corevia_acl::Surface::Sciter,
+        capability,
+        approval_reference,
+        approval_provenance_verified: false,
+    })
+    .is_ok()
+}
+
+fn authorize_sciter_session(
+    capability: crate::corevia_acl::Capability,
+    approval_reference: &str,
+) -> bool {
+    authorize_sciter_command(capability, Some(approval_reference))
+}
+
 lazy_static::lazy_static! {
     // stupid workaround for https://sciter.com/forums/topic/crash-on-latest-tis-mac-sdk-sometimes/
     static ref STUPID_VALUES: Mutex<Vec<Arc<Vec<Value>>>> = Default::default();
@@ -209,10 +229,22 @@ impl UI {
     }
 
     fn update_temporary_password(&self) {
+        if !authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            return;
+        }
         update_temporary_password()
     }
 
     fn set_permanent_password(&self, password: String) {
+        if !authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            return;
+        }
         let _ = set_permanent_password_with_result(password);
     }
 
@@ -229,22 +261,52 @@ impl UI {
     }
 
     fn set_remote_id(&mut self, id: String) {
+        if !authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            return;
+        }
         LocalConfig::set_remote_id(&id);
     }
 
     fn goto_install(&mut self) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "sciter-install-approval",
+        ) {
+            return;
+        }
         goto_install();
     }
 
     fn install_me(&mut self, _options: String, _path: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "sciter-install-approval",
+        ) {
+            return;
+        }
         install_me(_options, _path, false, false);
     }
 
     fn update_me(&self, _path: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "sciter-update-approval",
+        ) {
+            return;
+        }
         update_me(_path);
     }
 
     fn run_without_install(&self) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "sciter-portable-run-approval",
+        ) {
+            return;
+        }
         run_without_install();
     }
 
@@ -257,15 +319,15 @@ impl UI {
     }
 
     fn get_option(&self, key: String) -> String {
-        get_option(key)
+        get_option_from(crate::corevia_acl::Surface::Sciter, key)
     }
 
     fn get_local_option(&self, key: String) -> String {
-        get_local_option(key)
+        get_local_option_from(crate::corevia_acl::Surface::Sciter, key)
     }
 
     fn set_local_option(&self, key: String, value: String) {
-        set_local_option(key, value);
+        set_local_option_from(crate::corevia_acl::Surface::Sciter, key, value);
     }
 
     fn peer_has_password(&self, id: String) -> bool {
@@ -273,7 +335,14 @@ impl UI {
     }
 
     fn forget_password(&self, id: String) {
-        forget_password(id)
+        if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+            crate::corevia_acl::Surface::Sciter,
+            crate::corevia_acl::Capability::ManagePeers,
+        ))
+        .is_ok()
+        {
+            forget_password(id)
+        }
     }
 
     fn get_peer_option(&self, id: String, name: String) -> String {
@@ -281,7 +350,14 @@ impl UI {
     }
 
     fn set_peer_option(&self, id: String, name: String, value: String) {
-        set_peer_option(id, name, value)
+        if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+            crate::corevia_acl::Surface::Sciter,
+            crate::corevia_acl::Capability::ManagePeers,
+        ))
+        .is_ok()
+        {
+            set_peer_option(id, name, value)
+        }
     }
 
     fn using_public_server(&self) -> bool {
@@ -318,7 +394,8 @@ impl UI {
 
     fn get_options(&self) -> Value {
         let hashmap: HashMap<String, String> =
-            serde_json::from_str(&get_options()).unwrap_or_default();
+            serde_json::from_str(&get_options_from(crate::corevia_acl::Surface::Sciter))
+                .unwrap_or_default();
         let mut m = Value::map();
         for (k, v) in hashmap {
             m.set_item(k, v);
@@ -345,11 +422,11 @@ impl UI {
                 }
             }
         }
-        set_options(m);
+        set_options_from(crate::corevia_acl::Surface::Sciter, m);
     }
 
     fn set_option(&self, key: String, value: String) {
-        set_option(key, value);
+        set_option_from(crate::corevia_acl::Surface::Sciter, key, value);
     }
 
     fn install_path(&mut self) -> String {
@@ -361,10 +438,22 @@ impl UI {
     }
 
     fn get_socks(&self) -> Value {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "sciter-proxy-read-approval",
+        ) {
+            return Value::array(0);
+        }
         Value::from_iter(get_socks())
     }
 
     fn set_socks(&self, proxy: String, username: String, password: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::WriteGlobalSetting,
+            "sciter-proxy-setting-approval",
+        ) {
+            return;
+        }
         set_socks(proxy, username, password)
     }
 
@@ -393,6 +482,12 @@ impl UI {
     }
 
     fn set_share_rdp(&self, _enable: bool) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::UsePortForward,
+            "sciter-rdp-sharing-approval",
+        ) {
+            return;
+        }
         set_share_rdp(_enable);
     }
 
@@ -401,6 +496,12 @@ impl UI {
     }
 
     fn closing(&mut self, x: i32, y: i32, w: i32, h: i32) {
+        if !authorize_sciter_command(
+            crate::corevia_acl::Capability::WriteCustomerSetting,
+            None,
+        ) {
+            return;
+        }
         crate::server::input_service::fix_key_down_timeout_at_exit();
         LocalConfig::set_size(x, y, w, h);
     }
@@ -454,6 +555,9 @@ impl UI {
     }
 
     fn store_fav(&self, fav: Value) {
+        if !authorize_sciter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+            return;
+        }
         let mut tmp = vec![];
         fav.values().for_each(|v| {
             if let Some(v) = v.as_string() {
@@ -479,18 +583,36 @@ impl UI {
     }
 
     fn remove_peer(&mut self, id: String) {
+        if !authorize_sciter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+            return;
+        }
         PeerConfig::remove(&id);
     }
 
     fn remove_discovered(&mut self, id: String) {
+        if !authorize_sciter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+            return;
+        }
         remove_discovered(id);
     }
 
     fn send_wol(&mut self, id: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::StartConnection,
+            "sciter-wake-on-lan-approval",
+        ) {
+            return;
+        }
         crate::lan::send_wol(id)
     }
 
     fn new_remote(&mut self, id: String, remote_type: String, force_relay: bool) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::StartConnection,
+            "sciter-new-connection-approval",
+        ) {
+            return;
+        }
         new_remote(id, remote_type, force_relay)
     }
 
@@ -562,11 +684,20 @@ impl UI {
     }
 
     fn create_shortcut(&self, _id: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "sciter-shortcut-approval",
+        ) {
+            return;
+        }
         #[cfg(windows)]
         create_shortcut(_id)
     }
 
     fn discover(&self) {
+        if !authorize_sciter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+            return;
+        }
         std::thread::spawn(move || {
             allow_err!(crate::lan::discover());
         });
@@ -592,6 +723,12 @@ impl UI {
     }
 
     fn open_url(&self, url: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ExternalHttpRequest,
+            "sciter-open-url-approval",
+        ) {
+            return;
+        }
         #[cfg(windows)]
         let p = "explorer";
         #[cfg(target_os = "macos")]
@@ -606,16 +743,34 @@ impl UI {
     }
 
     fn change_id(&self, id: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "sciter-identity-change-approval",
+        ) {
+            return;
+        }
         reset_async_job_status();
         let old_id = self.get_id();
         change_id_shared(id, old_id);
     }
 
     fn http_request(&self, url: String, method: String, body: Option<String>, header: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ExternalHttpRequest,
+            "sciter-http-request-approval",
+        ) {
+            return;
+        }
         http_request(url, method, body, header)
     }
 
     fn post_request(&self, url: String, body: String, header: String) {
+        if !authorize_sciter_session(
+            crate::corevia_acl::Capability::ExternalHttpRequest,
+            "sciter-post-request-approval",
+        ) {
+            return;
+        }
         post_request(url, body, header)
     }
 

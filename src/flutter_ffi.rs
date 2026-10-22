@@ -35,6 +35,7 @@ lazy_static::lazy_static! {
 }
 
 fn initialize(app_dir: &str, custom_client_config: &str) {
+    crate::common::initialize_app_identity();
     flutter::async_tasks::start_flutter_async_runner();
     // `APP_DIR` is set in `main_get_data_dir_ios()` on iOS.
     #[cfg(not(target_os = "ios"))]
@@ -78,6 +79,53 @@ fn initialize(app_dir: &str, custom_client_config: &str) {
         // core_main's init_log does not work for flutter since it is only applied to its load_library in main.c
         hbb_common::init_log(false, "flutter_ffi");
     }
+}
+
+fn authorize_flutter_command(
+    capability: crate::corevia_acl::Capability,
+    approval_reference: Option<&str>,
+) -> bool {
+    crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest {
+        surface: crate::corevia_acl::Surface::Flutter,
+        capability,
+        approval_reference,
+        approval_provenance_verified: false,
+    })
+    .is_ok()
+}
+
+fn authorize_flutter_session(capability: crate::corevia_acl::Capability, reference: &str) -> bool {
+    authorize_flutter_command(capability, Some(reference))
+}
+
+fn authorize_flutter_local_ui(write: bool) -> bool {
+    crate::corevia_acl::authorize_local_ui(crate::corevia_acl::Surface::Flutter, write).is_ok()
+}
+
+fn authorize_flutter_setting(key: &str, write: bool) -> bool {
+    crate::corevia_acl::authorize_setting_with_approval(
+        crate::corevia_acl::Surface::Flutter,
+        key,
+        write,
+        "flutter-setting-approval",
+    )
+    .is_ok()
+}
+
+fn authorize_flutter_session_option(name: &str) -> bool {
+    crate::corevia_acl::authorize_session_option(
+        crate::corevia_acl::Surface::Flutter,
+        name,
+        "flutter-session-option-approval",
+    )
+    .is_ok()
+}
+
+fn authorize_flutter_input() -> bool {
+    authorize_flutter_session(
+        crate::corevia_acl::Capability::InputControl,
+        "flutter-input-control-approval",
+    )
 }
 
 #[inline]
@@ -124,6 +172,12 @@ pub fn session_add_existed_sync(
     displays: Vec<i32>,
     is_view_camera: bool,
 ) -> SyncReturn<String> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::StartConnection,
+        "flutter-existing-session-approval",
+    ) {
+        return SyncReturn("Connection request denied by Corevia Desk policy.".to_owned());
+    }
     if let Err(e) = session_add_existed(id.clone(), session_id, displays, is_view_camera) {
         SyncReturn(format!("Failed to add session with id {}, {}", &id, e))
     } else {
@@ -145,6 +199,23 @@ pub fn session_add_sync(
     is_shared_password: bool,
     conn_token: Option<String>,
 ) -> SyncReturn<String> {
+    let capability = if is_file_transfer {
+        crate::corevia_acl::Capability::UseFileTransfer
+    } else if is_port_forward || is_rdp {
+        crate::corevia_acl::Capability::UsePortForward
+    } else if is_terminal {
+        crate::corevia_acl::Capability::UseTerminal
+    } else if is_view_camera {
+        crate::corevia_acl::Capability::UseCamera
+    } else {
+        crate::corevia_acl::Capability::StartConnection
+    };
+    if !authorize_flutter_session(capability, "flutter-session-approval") {
+        if is_terminal {
+            std::env::remove_var("IS_TERMINAL_ADMIN");
+        }
+        return SyncReturn("Connection request denied by Corevia Desk policy.".to_owned());
+    }
     let add_res = session_add(
         &session_id,
         &id,
@@ -177,6 +248,12 @@ pub fn session_start(
     session_id: SessionID,
     id: String,
 ) -> ResultType<()> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::StartConnection,
+        "flutter-session-start-approval",
+    ) {
+        return Ok(());
+    }
     session_start_(&session_id, &id, events2ui)
 }
 
@@ -186,6 +263,12 @@ pub fn session_start_with_displays(
     id: String,
     displays: Vec<i32>,
 ) -> ResultType<()> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::StartConnection,
+        "flutter-session-start-approval",
+    ) {
+        return Ok(());
+    }
     session_start_(&session_id, &id, events2ui)?;
 
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
@@ -296,6 +379,14 @@ pub fn session_is_multi_ui_session(session_id: SessionID) -> SyncReturn<bool> {
 }
 
 pub fn session_record_screen(session_id: SessionID, start: bool) {
+    if start
+        && !authorize_flutter_session(
+            crate::corevia_acl::Capability::RecordSession,
+            "flutter-recording-approval",
+        )
+    {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.record_screen(start);
     }
@@ -310,6 +401,12 @@ pub fn session_get_is_recording(session_id: SessionID) -> SyncReturn<bool> {
 }
 
 pub fn session_reconnect(session_id: SessionID, force_relay: bool) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::StartConnection,
+        "flutter-reconnect-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.reconnect(force_relay);
     }
@@ -317,6 +414,9 @@ pub fn session_reconnect(session_id: SessionID, force_relay: bool) {
 }
 
 pub fn session_toggle_option(session_id: SessionID, value: String) {
+    if !authorize_flutter_session_option(&value) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         log::warn!("toggle option {}", &value);
         session.toggle_option(value.clone());
@@ -337,12 +437,23 @@ pub fn session_toggle_option(session_id: SessionID, value: String) {
 }
 
 pub fn session_toggle_privacy_mode(session_id: SessionID, impl_key: String, on: bool) {
+    if on
+        && !authorize_flutter_session(
+            crate::corevia_acl::Capability::TogglePrivacyMode,
+            "flutter-privacy-mode-approval",
+        )
+    {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.toggle_privacy_mode(impl_key, on);
     }
 }
 
 pub fn session_get_flutter_option(session_id: SessionID, k: String) -> Option<String> {
+    if !authorize_flutter_local_ui(false) {
+        return None;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         Some(session.get_flutter_option(k))
     } else {
@@ -351,6 +462,9 @@ pub fn session_get_flutter_option(session_id: SessionID, k: String) -> Option<St
 }
 
 pub fn session_set_flutter_option(session_id: SessionID, k: String, v: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_flutter_option(k, v);
     }
@@ -362,18 +476,30 @@ pub fn get_next_texture_key() -> SyncReturn<i32> {
 }
 
 pub fn get_local_flutter_option(k: String) -> SyncReturn<String> {
+    if !authorize_flutter_local_ui(false) {
+        return SyncReturn(String::new());
+    }
     SyncReturn(ui_interface::get_local_flutter_option(k))
 }
 
 pub fn set_local_flutter_option(k: String, v: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     ui_interface::set_local_flutter_option(k, v);
 }
 
 pub fn get_local_kb_layout_type() -> SyncReturn<String> {
+    if !authorize_flutter_local_ui(false) {
+        return SyncReturn(String::new());
+    }
     SyncReturn(ui_interface::get_kb_layout_type())
 }
 
 pub fn set_local_kb_layout_type(kb_layout_type: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     ui_interface::set_kb_layout_type(kb_layout_type)
 }
 
@@ -386,6 +512,9 @@ pub fn session_get_view_style(session_id: SessionID) -> Option<String> {
 }
 
 pub fn session_set_view_style(session_id: SessionID, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_view_style(value);
     }
@@ -400,6 +529,9 @@ pub fn session_get_scroll_style(session_id: SessionID) -> Option<String> {
 }
 
 pub fn session_set_scroll_style(session_id: SessionID, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_scroll_style(value);
     }
@@ -414,6 +546,9 @@ pub fn session_get_edge_scroll_edge_thickness(session_id: SessionID) -> Option<i
 }
 
 pub fn session_set_edge_scroll_edge_thickness(session_id: SessionID, value: i32) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_edge_scroll_edge_thickness(value);
     }
@@ -428,6 +563,9 @@ pub fn session_get_image_quality(session_id: SessionID) -> Option<String> {
 }
 
 pub fn session_set_image_quality(session_id: SessionID, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_image_quality(value);
     }
@@ -442,6 +580,9 @@ pub fn session_get_keyboard_mode(session_id: SessionID) -> Option<String> {
 }
 
 pub fn session_set_keyboard_mode(session_id: SessionID, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     let mut _mode_updated = false;
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_keyboard_mode(value.clone());
@@ -464,6 +605,9 @@ pub fn session_get_reverse_mouse_wheel_sync(session_id: SessionID) -> SyncReturn
 }
 
 pub fn session_set_reverse_mouse_wheel(session_id: SessionID, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_reverse_mouse_wheel(value);
     }
@@ -480,6 +624,9 @@ pub fn session_get_displays_as_individual_windows(
 }
 
 pub fn session_set_displays_as_individual_windows(session_id: SessionID, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_displays_as_individual_windows(value);
     }
@@ -501,6 +648,9 @@ pub fn session_set_use_all_my_displays_for_the_remote_session(
     session_id: SessionID,
     value: String,
 ) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_use_all_my_displays_for_the_remote_session(value);
     }
@@ -523,12 +673,18 @@ pub fn session_is_keyboard_mode_supported(session_id: SessionID, mode: String) -
 }
 
 pub fn session_set_custom_image_quality(session_id: SessionID, value: i32) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_custom_image_quality(value);
     }
 }
 
 pub fn session_set_custom_fps(session_id: SessionID, fps: i32) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.set_custom_fps(fps);
     }
@@ -543,24 +699,36 @@ pub fn session_get_trackpad_speed(session_id: SessionID) -> Option<i32> {
 }
 
 pub fn session_set_trackpad_speed(session_id: SessionID, value: i32) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.save_trackpad_speed(value);
     }
 }
 
 pub fn session_lock_screen(session_id: SessionID) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.lock_screen();
     }
 }
 
 pub fn session_ctrl_alt_del(session_id: SessionID) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.ctrl_alt_del();
     }
 }
 
 pub fn session_switch_display(is_desktop: bool, session_id: SessionID, value: Vec<i32>) {
+    if !authorize_flutter_input() {
+        return;
+    }
     sessions::session_switch_display(is_desktop, session_id, value);
 }
 
@@ -571,6 +739,9 @@ pub fn session_handle_flutter_key_event(
     lock_modes: i32,
     down_or_up: bool,
 ) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         let keyboard_mode = session.get_keyboard_mode();
         session.handle_flutter_key_event(
@@ -591,6 +762,9 @@ pub fn session_handle_flutter_raw_key_event(
     lock_modes: i32,
     down_or_up: bool,
 ) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         let keyboard_mode = session.get_keyboard_mode();
         session.handle_flutter_raw_key_event(
@@ -643,6 +817,9 @@ pub fn session_input_key(
     shift: bool,
     command: bool,
 ) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         // #[cfg(any(target_os = "android", target_os = "ios"))]
         session.input_key(&name, down, press, alt, ctrl, shift, command);
@@ -650,6 +827,9 @@ pub fn session_input_key(
 }
 
 pub fn session_input_string(session_id: SessionID, value: String) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         // #[cfg(any(target_os = "android", target_os = "ios"))]
         session.input_string(&value);
@@ -658,6 +838,9 @@ pub fn session_input_string(session_id: SessionID, value: String) {
 
 // chat_client_mode
 pub fn session_send_chat(session_id: SessionID, text: String) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::SendChat, None) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.send_chat(text);
     }
@@ -665,6 +848,12 @@ pub fn session_send_chat(session_id: SessionID, text: String) {
 
 // Terminal functions
 pub fn session_open_terminal(session_id: SessionID, terminal_id: i32, rows: u32, cols: u32) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseTerminal,
+        "flutter-terminal-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.open_terminal(terminal_id, rows, cols);
     } else {
@@ -676,24 +865,45 @@ pub fn session_open_terminal(session_id: SessionID, terminal_id: i32, rows: u32,
 }
 
 pub fn session_send_terminal_input(session_id: SessionID, terminal_id: i32, data: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseTerminal,
+        "flutter-terminal-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.send_terminal_input(terminal_id, data);
     }
 }
 
 pub fn session_resize_terminal(session_id: SessionID, terminal_id: i32, rows: u32, cols: u32) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseTerminal,
+        "flutter-terminal-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.resize_terminal(terminal_id, rows, cols);
     }
 }
 
 pub fn session_close_terminal(session_id: SessionID, terminal_id: i32) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseTerminal,
+        "flutter-terminal-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.close_terminal(terminal_id);
     }
 }
 
 pub fn session_peer_option(session_id: SessionID, name: String, value: String) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.set_option(name, value);
     }
@@ -707,6 +917,12 @@ pub fn session_get_peer_option(session_id: SessionID, name: String) -> String {
 }
 
 pub fn session_input_os_password(session_id: SessionID, value: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ElevateSession,
+        "flutter-elevation-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.input_os_password(value, true);
     }
@@ -714,6 +930,12 @@ pub fn session_input_os_password(session_id: SessionID, value: String) {
 
 // File Action
 pub fn session_read_remote_dir(session_id: SessionID, path: String, include_hidden: bool) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.read_remote_dir(path, include_hidden);
     }
@@ -729,6 +951,12 @@ pub fn session_send_files(
     is_remote: bool,
     _is_dir: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.send_files(
             act_id,
@@ -750,6 +978,12 @@ pub fn session_set_confirm_override_file(
     remember: bool,
     is_upload: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.set_confirm_override_file(act_id, file_num, need_override, remember, is_upload);
     }
@@ -762,6 +996,12 @@ pub fn session_remove_file(
     file_num: i32,
     is_remote: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.remove_file(act_id, path, file_num, is_remote);
     }
@@ -774,6 +1014,12 @@ pub fn session_read_dir_to_remove_recursive(
     is_remote: bool,
     show_hidden: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.remove_dir_all(act_id, path, is_remote, show_hidden);
     }
@@ -785,18 +1031,36 @@ pub fn session_remove_all_empty_dirs(
     path: String,
     is_remote: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.remove_dir(act_id, path, is_remote);
     }
 }
 
 pub fn session_cancel_job(session_id: SessionID, act_id: i32) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.cancel_job(act_id);
     }
 }
 
 pub fn session_create_dir(session_id: SessionID, act_id: i32, path: String, is_remote: bool) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.create_dir(act_id, path, is_remote);
     }
@@ -807,6 +1071,12 @@ pub fn session_read_local_dir_sync(
     path: String,
     show_hidden: bool,
 ) -> String {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return String::new();
+    }
     if let Ok(fd) = fs::read_dir(&fs::get_path(&path), show_hidden) {
         return make_fd_to_json(fd.id, path, &fd.entries);
     }
@@ -818,6 +1088,12 @@ pub fn session_read_local_empty_dirs_recursive_sync(
     path: String,
     include_hidden: bool,
 ) -> String {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return String::new();
+    }
     if let Ok(fds) = fs::get_empty_dirs_recursive(&path, include_hidden) {
         return make_vec_fd_to_json(&fds);
     }
@@ -829,6 +1105,12 @@ pub fn session_read_remote_empty_dirs_recursive_sync(
     path: String,
     include_hidden: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.read_empty_dirs(path, include_hidden);
     }
@@ -842,6 +1124,12 @@ pub fn session_get_platform(session_id: SessionID, is_remote: bool) -> String {
 }
 
 pub fn session_load_last_transfer_jobs(session_id: SessionID) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         return session.load_last_jobs();
     } else {
@@ -862,6 +1150,12 @@ pub fn session_add_job(
     include_hidden: bool,
     is_remote: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.add_job(
             act_id,
@@ -876,6 +1170,12 @@ pub fn session_add_job(
 }
 
 pub fn session_resume_job(session_id: SessionID, act_id: i32, is_remote: bool) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.resume_job(act_id, is_remote);
     }
@@ -888,40 +1188,73 @@ pub fn session_rename_file(
     new_name: String,
     is_remote: bool,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseFileTransfer,
+        "flutter-file-transfer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.rename_file(act_id, path, new_name, is_remote);
     }
 }
 
 pub fn session_elevate_direct(session_id: SessionID) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ElevateSession,
+        "flutter-elevation-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.elevate_direct();
     }
 }
 
 pub fn session_elevate_with_logon(session_id: SessionID, username: String, password: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ElevateSession,
+        "flutter-elevation-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.elevate_with_logon(username, password);
     }
 }
 
 pub fn session_switch_sides(session_id: SessionID) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.switch_sides();
     }
 }
 
 pub fn session_change_resolution(session_id: SessionID, display: i32, width: i32, height: i32) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.change_resolution(display, width, height);
     }
 }
 
 pub fn session_set_size(session_id: SessionID, display: usize, width: usize, height: usize) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     super::flutter::session_set_size(session_id, display, width, height)
 }
 
 pub fn session_send_selected_session_id(session_id: SessionID, sid: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ElevateSession,
+        "flutter-selected-user-session-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.send_selected_session_id(sid);
     }
@@ -939,6 +1272,12 @@ pub fn main_get_login_device_info() -> SyncReturn<String> {
 }
 
 pub fn main_change_id(new_id: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-identity-change-approval",
+    ) {
+        return;
+    }
     change_id(new_id)
 }
 
@@ -951,11 +1290,11 @@ pub fn main_get_http_status(url: String) -> Option<String> {
 }
 
 pub fn main_get_option(key: String) -> String {
-    get_option(key)
+    get_option_from(crate::corevia_acl::Surface::Flutter, key)
 }
 
 pub fn main_get_option_sync(key: String) -> SyncReturn<String> {
-    SyncReturn(get_option(key))
+    SyncReturn(get_option_from(crate::corevia_acl::Surface::Flutter, key))
 }
 
 pub fn main_get_error() -> String {
@@ -963,6 +1302,9 @@ pub fn main_get_error() -> String {
 }
 
 pub fn main_set_option(key: String, value: String) {
+    if !authorize_flutter_setting(&key, true) {
+        return;
+    }
     #[cfg(target_os = "android")]
     {
         let is_permission_option = key.eq(config::keys::OPTION_ENABLE_CLIPBOARD)
@@ -1023,15 +1365,16 @@ pub fn main_set_option(key: String, value: String) {
 }
 
 pub fn main_get_options() -> String {
-    get_options()
+    get_options_from(crate::corevia_acl::Surface::Flutter)
 }
 
 pub fn main_get_options_sync() -> SyncReturn<String> {
-    SyncReturn(get_options())
+    SyncReturn(get_options_from(crate::corevia_acl::Surface::Flutter))
 }
 
 pub fn main_set_options(json: String) {
     let mut map: HashMap<String, String> = serde_json::from_str(&json).unwrap_or(HashMap::new());
+    map.retain(|key, _| authorize_flutter_setting(key, true));
     #[cfg(target_os = "android")]
     {
         let allow_perm_change_in_accept_window = config::option2bool(
@@ -1064,6 +1407,12 @@ pub fn main_test_if_valid_server(server: String, test_with_proxy: bool) -> Strin
 }
 
 pub fn main_set_socks(proxy: String, username: String, password: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::WriteGlobalSetting,
+        "flutter-proxy-setting-approval",
+    ) {
+        return;
+    }
     set_socks(proxy, username, password)
 }
 
@@ -1072,6 +1421,12 @@ pub fn main_get_proxy_status() -> bool {
 }
 
 pub fn main_get_socks() -> Vec<String> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-proxy-read-approval",
+    ) {
+        return vec![];
+    }
     get_socks()
 }
 
@@ -1096,19 +1451,31 @@ pub fn main_get_version() -> String {
 }
 
 pub fn main_get_fav() -> Vec<String> {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return vec![];
+    }
     get_fav()
 }
 
 pub fn main_store_fav(favs: Vec<String>) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     store_fav(favs)
 }
 
 pub fn main_get_peer_sync(id: String) -> SyncReturn<String> {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return SyncReturn(String::new());
+    }
     let conf = get_peer(id);
     SyncReturn(serde_json::to_string(&conf).unwrap_or("".to_string()))
 }
 
 pub fn main_get_lan_peers() -> String {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return "[]".to_owned();
+    }
     serde_json::to_string(&get_lan_peers()).unwrap_or_default()
 }
 
@@ -1137,6 +1504,9 @@ pub fn main_is_using_public_server() -> bool {
 }
 
 pub fn main_discover() {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     discover();
 }
 
@@ -1145,6 +1515,12 @@ pub fn main_get_api_server() -> String {
 }
 
 pub fn main_deploy_device(token: String, id: String) -> String {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-device-deployment-approval",
+    ) {
+        return "Deployment denied by Corevia Desk policy.".to_owned();
+    }
     #[cfg(target_os = "android")]
     {
         let new_id = match id.trim() {
@@ -1165,11 +1541,17 @@ pub fn main_resolve_avatar_url(avatar: String) -> SyncReturn<String> {
 }
 
 pub fn main_http_request(url: String, method: String, body: Option<String>, header: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ExternalHttpRequest,
+        "flutter-http-request-approval",
+    ) {
+        return;
+    }
     http_request(url, method, body, header)
 }
 
 pub fn main_get_local_option(key: String) -> SyncReturn<String> {
-    SyncReturn(get_local_option(key))
+    SyncReturn(get_local_option_from(crate::corevia_acl::Surface::Flutter, key))
 }
 
 pub fn main_get_use_texture_render() -> SyncReturn<bool> {
@@ -1177,6 +1559,12 @@ pub fn main_get_use_texture_render() -> SyncReturn<bool> {
 }
 
 pub fn main_get_env(key: String) -> SyncReturn<String> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-environment-read-approval",
+    ) {
+        return SyncReturn(String::new());
+    }
     SyncReturn(std::env::var(key).unwrap_or_default())
 }
 
@@ -1186,6 +1574,12 @@ pub fn main_get_env(key: String) -> SyncReturn<String> {
 //
 // And we need to share the environment variables between rust and dart isolates sometimes.
 pub fn main_set_env(key: String, value: Option<String>) -> SyncReturn<()> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-environment-change-approval",
+    ) {
+        return SyncReturn(());
+    }
     let is_valid_key = !key.is_empty() && !key.contains('=') && !key.contains('\0');
     debug_assert!(is_valid_key, "Invalid environment variable key: {}", key);
     if !is_valid_key {
@@ -1210,6 +1604,9 @@ pub fn main_set_env(key: String, value: Option<String>) -> SyncReturn<()> {
 }
 
 pub fn main_set_local_option(key: String, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     let is_texture_render_key = key.eq(config::keys::OPTION_TEXTURE_RENDER);
     let is_d3d_render_key = key.eq(config::keys::OPTION_ALLOW_D3D_RENDER);
     set_local_option(key, value.clone());
@@ -1241,6 +1638,22 @@ pub fn main_set_local_option(key: String, value: String) {
 // 1. For get, the value is stored in the server process.
 // 2. For clear, we need to need to return the error mmsg from the server process to flutter.
 pub fn main_handle_wayland_screencast_restore_token(_key: String, _value: String) -> String {
+    if _value == "get"
+        && !authorize_flutter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "flutter-wayland-token-read-approval",
+        )
+    {
+        return "Wayland token access denied by Corevia Desk policy.".to_owned();
+    }
+    if _value == "clear"
+        && !authorize_flutter_session(
+            crate::corevia_acl::Capability::ManageService,
+            "flutter-wayland-token-clear-approval",
+        )
+    {
+        return "Wayland token change denied by Corevia Desk policy.".to_owned();
+    }
     #[cfg(not(target_os = "linux"))]
     {
         return "".to_owned();
@@ -1277,6 +1690,9 @@ pub fn main_get_input_source() -> SyncReturn<String> {
 }
 
 pub fn main_set_input_source(session_id: SessionID, value: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         change_input_source(session_id, value);
@@ -1296,6 +1712,9 @@ pub fn main_set_input_source(session_id: SessionID, value: String) {
 /// - Windows/macOS/Linux: attempts to move the cursor to (x, y)
 /// - Android/iOS: no-op, always returns `false`
 pub fn main_set_cursor_position(x: i32, y: i32) -> SyncReturn<bool> {
+    if !authorize_flutter_local_ui(true) {
+        return SyncReturn(false);
+    }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         SyncReturn(crate::set_cursor_pos(x, y))
@@ -1330,6 +1749,9 @@ pub fn main_clip_cursor(
     bottom: i32,
     enable: bool,
 ) -> SyncReturn<bool> {
+    if !authorize_flutter_local_ui(true) {
+        return SyncReturn(false);
+    }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     {
         let rect = if enable {
@@ -1355,38 +1777,82 @@ pub fn main_get_uuid() -> String {
 }
 
 pub fn main_get_peer_option(id: String, key: String) -> String {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return String::new();
+    }
     get_peer_option(id, key)
 }
 
 pub fn main_get_peer_option_sync(id: String, key: String) -> SyncReturn<String> {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return SyncReturn(String::new());
+    }
     SyncReturn(get_peer_option(id, key))
 }
 
 // Sometimes we need to get the flutter option of a peer by reading the file.
 // Because the session may not be established yet.
 pub fn main_get_peer_flutter_option_sync(id: String, k: String) -> SyncReturn<String> {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return SyncReturn(String::new());
+    }
     SyncReturn(get_peer_flutter_option(id, k))
 }
 
 pub fn main_set_peer_flutter_option_sync(id: String, k: String, v: String) -> SyncReturn<()> {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+        crate::corevia_acl::Surface::Flutter,
+        crate::corevia_acl::Capability::ManagePeers,
+    ))
+    .is_err()
+    {
+        return SyncReturn(());
+    }
     set_peer_flutter_option(id, k, v);
     SyncReturn(())
 }
 
 pub fn main_set_peer_option(id: String, key: String, value: String) {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+        crate::corevia_acl::Surface::Flutter,
+        crate::corevia_acl::Capability::ManagePeers,
+    ))
+    .is_err()
+    {
+        return;
+    }
     set_peer_option(id, key, value)
 }
 
 pub fn main_set_peer_option_sync(id: String, key: String, value: String) -> SyncReturn<bool> {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+        crate::corevia_acl::Surface::Flutter,
+        crate::corevia_acl::Capability::ManagePeers,
+    ))
+    .is_err()
+    {
+        return SyncReturn(false);
+    }
     set_peer_option(id, key, value);
     SyncReturn(true)
 }
 
 pub fn main_set_peer_alias(id: String, alias: String) {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+        crate::corevia_acl::Surface::Flutter,
+        crate::corevia_acl::Capability::ManagePeers,
+    ))
+    .is_err()
+    {
+        return;
+    }
     set_peer_option(id, "alias".to_owned(), alias)
 }
 
 pub fn main_get_new_stored_peers() -> String {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return "[]".to_owned();
+    }
     let peers: Vec<String> = config::NEW_STORED_PEER_CONFIG
         .lock()
         .unwrap()
@@ -1396,14 +1862,28 @@ pub fn main_get_new_stored_peers() -> String {
 }
 
 pub fn main_forget_password(id: String) {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+        crate::corevia_acl::Surface::Flutter,
+        crate::corevia_acl::Capability::ManagePeers,
+    ))
+    .is_err()
+    {
+        return;
+    }
     forget_password(id)
 }
 
 pub fn main_peer_has_password(id: String) -> bool {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return false;
+    }
     peer_has_password(id)
 }
 
 pub fn main_peer_exists(id: String) -> bool {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return false;
+    }
     peer_exists(&id)
 }
 
@@ -1437,6 +1917,11 @@ pub fn main_load_recent_peers() {
             serde_json::ser::to_string(&data).unwrap_or("".to_owned()),
         );
     };
+
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        push_to_flutter("[]".to_owned(), None);
+        return;
+    }
 
     if !config::APP_DIR.read().unwrap().is_empty() {
         let vec_id_modified_time_path = PeerConfig::get_vec_id_modified_time_path(&None);
@@ -1480,6 +1965,9 @@ pub fn main_load_recent_peers() {
 }
 
 pub fn main_load_recent_peers_for_ab(filter: String) -> String {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return "[]".to_owned();
+    }
     let id_filters = serde_json::from_str::<Vec<String>>(&filter).unwrap_or_default();
     let id_filters = if id_filters.is_empty() {
         None
@@ -1504,6 +1992,10 @@ pub fn main_load_fav_peers() {
             serde_json::ser::to_string(&data).unwrap_or("".to_owned()),
         );
     };
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        push_to_flutter("[]".to_owned());
+        return;
+    }
     if !config::APP_DIR.read().unwrap().is_empty() {
         let favs = get_fav();
         let mut recent = PeerConfig::peers(Some(favs.clone()));
@@ -1539,6 +2031,17 @@ pub fn main_load_fav_peers() {
 }
 
 pub fn main_load_lan_peers() {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        let data = HashMap::from([
+            ("name", "load_lan_peers".to_owned()),
+            ("peers", "[]".to_owned()),
+        ]);
+        let _res = flutter::push_global_event(
+            flutter::APP_TYPE_MAIN,
+            serde_json::ser::to_string(&data).unwrap_or("".to_owned()),
+        );
+        return;
+    }
     let data = HashMap::from([
         ("name", "load_lan_peers".to_owned()),
         (
@@ -1553,6 +2056,9 @@ pub fn main_load_lan_peers() {
 }
 
 pub fn main_remove_discovered(id: String) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     remove_discovered(id);
 }
 
@@ -1567,12 +2073,18 @@ fn main_broadcast_message(data: &HashMap<&str, &str>) {
 }
 
 pub fn main_change_theme(dark: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     main_broadcast_message(&HashMap::from([("name", "theme"), ("dark", &dark)]));
     #[cfg(not(any(target_os = "ios")))]
     send_to_cm(&crate::ipc::Data::Theme(dark));
 }
 
 pub fn main_change_language(lang: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     main_broadcast_message(&HashMap::from([("name", "language"), ("lang", &lang)]));
     #[cfg(not(any(target_os = "ios")))]
     send_to_cm(&crate::ipc::Data::Language(lang));
@@ -1583,6 +2095,12 @@ pub fn main_video_save_directory(root: bool) -> SyncReturn<String> {
 }
 
 pub fn main_set_user_default_option(key: String, value: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::WriteGlobalSetting,
+        "flutter-user-default-setting-approval",
+    ) {
+        return;
+    }
     set_user_default_option(key, value);
 }
 
@@ -1672,24 +2190,48 @@ pub fn session_add_port_forward(
     remote_host: String,
     remote_port: i32,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UsePortForward,
+        "flutter-port-forward-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.add_port_forward(local_port, remote_host, remote_port);
     }
 }
 
 pub fn session_remove_port_forward(session_id: SessionID, local_port: i32) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UsePortForward,
+        "flutter-port-forward-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.remove_port_forward(local_port);
     }
 }
 
 pub fn session_new_rdp(session_id: SessionID) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UsePortForward,
+        "flutter-rdp-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.new_rdp();
     }
 }
 
 pub fn session_request_voice_call(session_id: SessionID) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseVoiceCall,
+        "flutter-voice-call-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.request_voice_call();
     }
@@ -1710,7 +2252,12 @@ pub fn session_get_conn_token(session_id: SessionID) -> SyncReturn<Option<String
 }
 
 pub fn cm_handle_incoming_voice_call(id: i32, accept: bool) {
-    crate::ui_cm_interface::handle_incoming_voice_call(id, accept);
+    crate::ui_cm_interface::handle_incoming_voice_call_from(
+        crate::corevia_acl::Surface::Flutter,
+        id,
+        accept,
+        "flutter-voice-call-approval",
+    );
 }
 
 pub fn cm_close_voice_call(id: i32) {
@@ -1718,6 +2265,12 @@ pub fn cm_close_voice_call(id: i32) {
 }
 
 pub fn set_voice_call_input_device(_is_cm: bool, _device: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UseVoiceCall,
+        "flutter-voice-call-approval",
+    ) {
+        return;
+    }
     #[cfg(not(any(target_os = "android", target_os = "ios")))]
     if _is_cm {
         let _ = crate::ipc::set_config("voice-call-input", _device);
@@ -1745,6 +2298,12 @@ pub fn main_get_last_remote_id() -> String {
 }
 
 pub fn main_get_software_update_url() {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ExternalHttpRequest,
+        "flutter-software-update-check-approval",
+    ) {
+        return;
+    }
     crate::common::check_software_update();
 }
 
@@ -1761,6 +2320,9 @@ pub fn main_get_temporary_password() -> String {
 }
 
 pub fn main_set_permanent_password_with_result(password: String) -> bool {
+    if !authorize_flutter_local_ui(true) {
+        return false;
+    }
     ui_interface::set_permanent_password_with_result(password)
 }
 
@@ -1789,14 +2351,23 @@ pub fn main_init(app_dir: String, custom_client_config: String) {
 }
 
 pub fn main_device_id(id: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     *crate::common::DEVICE_ID.lock().unwrap() = id;
 }
 
 pub fn main_device_name(name: String) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     *crate::common::DEVICE_NAME.lock().unwrap() = name;
 }
 
 pub fn main_remove_peer(id: String) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     PeerConfig::remove(&id);
 }
 
@@ -1829,6 +2400,12 @@ pub fn get_double_click_time() -> SyncReturn<i32> {
 }
 
 pub fn main_start_dbus_server() {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-local-control-server-approval",
+    ) {
+        return;
+    }
     #[cfg(target_os = "linux")]
     {
         use crate::dbus::start_dbus_server;
@@ -1840,6 +2417,9 @@ pub fn main_start_dbus_server() {
 }
 
 pub fn main_save_ab(json: String) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     if json.len() > 1024 {
         std::thread::spawn(|| {
             config::Ab::store(json);
@@ -1850,6 +2430,9 @@ pub fn main_save_ab(json: String) {
 }
 
 pub fn main_clear_ab() {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     config::Ab::remove();
 }
 
@@ -1858,6 +2441,9 @@ pub fn main_load_ab() -> String {
 }
 
 pub fn main_save_group(json: String) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     if json.len() > 1024 {
         std::thread::spawn(|| {
             config::Group::store(json);
@@ -1868,6 +2454,9 @@ pub fn main_save_group(json: String) {
 }
 
 pub fn main_clear_group() {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     config::Group::remove();
 }
 
@@ -1876,6 +2465,9 @@ pub fn main_load_group() -> String {
 }
 
 pub fn session_send_pointer(session_id: SessionID, msg: String) {
+    if !authorize_flutter_input() {
+        return;
+    }
     super::flutter::session_send_pointer(session_id, msg);
 }
 
@@ -1908,6 +2500,9 @@ pub fn session_send_pointer(session_id: SessionID, msg: String) {
 /// If these assumptions are violated (e.g., `relative_mouse_mode` is added to normal events),
 /// legitimate mouse events may be silently dropped by the early-return logic below.
 pub fn session_send_mouse(session_id: SessionID, msg: String) {
+    if !authorize_flutter_input() {
+        return;
+    }
     if let Ok(m) = serde_json::from_str::<HashMap<String, String>>(&msg) {
         // Relative mouse mode marker validation (Flutter-only).
         // This only validates and filters markers; the server tracks per-connection
@@ -2012,6 +2607,12 @@ pub fn session_send_mouse(session_id: SessionID, msg: String) {
 }
 
 pub fn session_restart_remote_device(session_id: SessionID) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::RestartRemoteDevice,
+        "flutter-restart-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.restart_remote_device();
     }
@@ -2027,6 +2628,12 @@ pub fn session_get_audit_server_sync(session_id: SessionID, typ: String) -> Sync
 }
 
 pub fn session_send_note(session_id: SessionID, note: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ExternalHttpRequest,
+        "flutter-audit-note-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.send_note(note)
     }
@@ -2041,6 +2648,9 @@ pub fn session_get_last_audit_note(session_id: SessionID) -> SyncReturn<String> 
 }
 
 pub fn session_set_audit_guid(session_id: SessionID, guid: String) {
+    if !authorize_flutter_command(crate::corevia_acl::Capability::ManagePeers, None) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         *session.audit_guid.lock().unwrap() = guid;
     }
@@ -2083,6 +2693,12 @@ pub fn session_on_waiting_for_image_dialog_show(session_id: SessionID) {
 }
 
 pub fn session_toggle_virtual_display(session_id: SessionID, index: i32, on: bool) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-virtual-display-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.toggle_virtual_display(index, on);
         flutter::session_update_virtual_display(&session, index, on);
@@ -2095,6 +2711,12 @@ pub fn session_printer_response(
     path: String,
     printer_name: String,
 ) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UsePrinter,
+        "flutter-printer-approval",
+    ) {
+        return;
+    }
     if let Some(session) = sessions::get_session_by_session_id(&session_id) {
         session.printer_response(id, path, printer_name);
     }
@@ -2120,6 +2742,12 @@ pub fn main_get_data_dir_ios(app_dir: String) -> SyncReturn<String> {
 }
 
 pub fn main_stop_service() {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-service-stop-approval",
+    ) {
+        return;
+    }
     #[cfg(target_os = "android")]
     {
         config::Config::set_option("stop-service".into(), "Y".into());
@@ -2128,6 +2756,12 @@ pub fn main_stop_service() {
 }
 
 pub fn main_start_service() {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-service-start-approval",
+    ) {
+        return;
+    }
     #[cfg(target_os = "android")]
     {
         config::Config::set_option("stop-service".into(), "".into());
@@ -2137,6 +2771,9 @@ pub fn main_start_service() {
 }
 
 pub fn main_update_temporary_password() {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     update_temporary_password();
 }
 
@@ -2145,10 +2782,22 @@ pub fn main_check_super_user_permission() -> bool {
 }
 
 pub fn main_get_unlock_pin() -> SyncReturn<String> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-unlock-pin-read-approval",
+    ) {
+        return SyncReturn(String::new());
+    }
     SyncReturn(get_unlock_pin())
 }
 
 pub fn main_set_unlock_pin(pin: String) -> SyncReturn<String> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-unlock-pin-approval",
+    ) {
+        return SyncReturn("Unlock PIN change denied by Corevia Desk policy.".to_owned());
+    }
     SyncReturn(set_unlock_pin(pin))
 }
 
@@ -2169,24 +2818,44 @@ pub fn main_get_mouse_time() -> f64 {
 
 pub fn main_wol(id: String) {
     // TODO: move send_wol outside.
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::StartConnection,
+        "flutter-wake-on-lan-approval",
+    ) {
+        return;
+    }
     #[cfg(not(any(target_os = "ios")))]
     crate::lan::send_wol(id)
 }
 
 pub fn main_create_shortcut(_id: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-shortcut-approval",
+    ) {
+        return;
+    }
     #[cfg(windows)]
     create_shortcut(_id);
 }
 
 pub fn cm_send_chat(conn_id: i32, msg: String) {
     #[cfg(not(any(target_os = "ios")))]
-    crate::ui_cm_interface::send_chat(conn_id, msg);
+    crate::ui_cm_interface::send_chat_from(
+        crate::corevia_acl::Surface::Flutter,
+        conn_id,
+        msg,
+    );
 }
 
 pub fn cm_login_res(conn_id: i32, res: bool) {
     #[cfg(not(any(target_os = "ios")))]
     if res {
-        crate::ui_cm_interface::authorize(conn_id);
+        crate::ui_cm_interface::authorize_from(
+            crate::corevia_acl::Surface::Flutter,
+            conn_id,
+            "flutter-incoming-connection-approval",
+        );
     } else {
         crate::ui_cm_interface::close(conn_id);
     }
@@ -2225,7 +2894,13 @@ pub fn cm_get_click_time() -> f64 {
 
 pub fn cm_switch_permission(conn_id: i32, name: String, enabled: bool) {
     #[cfg(not(any(target_os = "ios")))]
-    crate::ui_cm_interface::switch_permission(conn_id, name, enabled)
+    crate::ui_cm_interface::switch_permission_from(
+        crate::corevia_acl::Surface::Flutter,
+        conn_id,
+        name,
+        enabled,
+        "flutter-connection-permission-approval",
+    )
 }
 
 pub fn cm_can_elevate() -> SyncReturn<bool> {
@@ -2340,10 +3015,22 @@ pub fn main_is_share_rdp() -> SyncReturn<bool> {
 }
 
 pub fn main_set_share_rdp(enable: bool) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::UsePortForward,
+        "flutter-rdp-sharing-approval",
+    ) {
+        return;
+    }
     set_share_rdp(enable)
 }
 
 pub fn main_goto_install() -> SyncReturn<bool> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-install-approval",
+    ) {
+        return SyncReturn(false);
+    }
     goto_install();
     SyncReturn(true)
 }
@@ -2353,6 +3040,12 @@ pub fn main_get_new_version() -> SyncReturn<String> {
 }
 
 pub fn main_update_me() -> SyncReturn<bool> {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-update-approval",
+    ) {
+        return SyncReturn(false);
+    }
     update_me("".to_owned());
     SyncReturn(true)
 }
@@ -2374,10 +3067,22 @@ pub fn install_show_run_without_install() -> SyncReturn<bool> {
 }
 
 pub fn install_run_without_install() {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-portable-run-approval",
+    ) {
+        return;
+    }
     run_without_install();
 }
 
 pub fn install_install_me(options: String, path: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-install-approval",
+    ) {
+        return;
+    }
     install_me(options, path, false, false);
 }
 
@@ -2390,6 +3095,12 @@ pub fn install_install_options() -> SyncReturn<String> {
 }
 
 pub fn main_account_auth(op: String, remember_me: bool) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ExternalHttpRequest,
+        "flutter-account-auth-approval",
+    ) {
+        return;
+    }
     let id = get_id();
     let uuid = get_uuid();
     account_auth(op, id, uuid, remember_me);
@@ -2442,11 +3153,20 @@ pub fn cm_init() {
 /// * Should only be called in the main flutter window.
 /// * macOS only
 pub fn main_start_ipc_url_server() {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-ipc-url-server-approval",
+    ) {
+        return;
+    }
     #[cfg(target_os = "macos")]
     std::thread::spawn(move || crate::server::start_ipc_url_server());
 }
 
 pub fn main_test_wallpaper(_second: u64) {
+    if !authorize_flutter_local_ui(true) {
+        return;
+    }
     #[cfg(any(target_os = "windows", target_os = "linux"))]
     std::thread::spawn(move || match crate::platform::WallPaperRemover::new() {
         Ok(_remover) => {
@@ -2459,6 +3179,9 @@ pub fn main_test_wallpaper(_second: u64) {
 }
 
 pub fn main_support_remove_wallpaper() -> bool {
+    if !authorize_flutter_local_ui(true) {
+        return false;
+    }
     support_remove_wallpaper()
 }
 
@@ -2561,10 +3284,22 @@ pub fn main_supported_input_source() -> SyncReturn<String> {
 }
 
 pub fn main_generate2fa() -> String {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-two-factor-setup-approval",
+    ) {
+        return String::new();
+    }
     generate2fa()
 }
 
 pub fn main_verify2fa(code: String) -> bool {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-two-factor-setup-approval",
+    ) {
+        return false;
+    }
     verify2fa(code)
 }
 
@@ -2573,6 +3308,12 @@ pub fn main_has_valid_2fa_sync() -> SyncReturn<bool> {
 }
 
 pub fn main_verify_bot(token: String) -> String {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ExternalHttpRequest,
+        "flutter-bot-auth-approval",
+    ) {
+        return String::new();
+    }
     verify_bot(token)
 }
 
@@ -2593,14 +3334,32 @@ pub fn main_check_hwcodec() {
 }
 
 pub fn main_get_trusted_devices() -> String {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-trusted-devices-approval",
+    ) {
+        return "[]".to_owned();
+    }
     get_trusted_devices()
 }
 
 pub fn main_remove_trusted_devices(json: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-trusted-devices-approval",
+    ) {
+        return;
+    }
     remove_trusted_devices(&json)
 }
 
 pub fn main_clear_trusted_devices() {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-trusted-devices-approval",
+    ) {
+        return;
+    }
     clear_trusted_devices()
 }
 
@@ -2732,6 +3491,12 @@ pub fn main_get_common_sync(key: String) -> SyncReturn<String> {
 }
 
 pub fn main_set_common(_key: String, _value: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::ManageService,
+        "flutter-common-system-change-approval",
+    ) {
+        return;
+    }
     #[cfg(target_os = "windows")]
     if _key == "install-printer" && crate::platform::is_win_10_or_greater() {
         std::thread::spawn(move || {
@@ -2861,6 +3626,12 @@ pub fn main_set_common(_key: String, _value: String) {
 }
 
 pub fn session_set_common(session_id: SessionID, key: String, value: String) {
+    if !authorize_flutter_session(
+        crate::corevia_acl::Capability::StartConnection,
+        "flutter-session-security-change-approval",
+    ) {
+        return;
+    }
     if let Some(s) = sessions::get_session_by_session_id(&session_id) {
         if key == "continue-insecure-connection"
         {

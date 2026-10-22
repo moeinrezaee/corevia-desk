@@ -2822,7 +2822,7 @@ static UINT wf_cliprdr_server_format_list(CliprdrClientContext *context,
 			UINT32 *p_conn_id = (UINT32 *)calloc(1, sizeof(UINT32));
 			if (p_conn_id) {
 				*p_conn_id = formatList->connID;
-				if (PostMessage(clipboard->hwnd, WM_CLIPRDR_MESSAGE, OLE_SETCLIPBOARD, p_conn_id))
+				if (PostMessage(clipboard->hwnd, WM_CLIPRDR_MESSAGE, OLE_SETCLIPBOARD, (LPARAM)p_conn_id))
 					rc = CHANNEL_RC_OK;
 				else
 					free(p_conn_id);
@@ -2858,7 +2858,7 @@ static UINT wf_cliprdr_server_format_list(CliprdrClientContext *context,
 						{
 							format_ids->formats[i] = clipboard->format_mappings[i].local_format_id;
 						}
-						if (PostMessage(clipboard->hwnd, WM_CLIPRDR_MESSAGE, DELAYED_RENDERING, format_ids))
+						if (PostMessage(clipboard->hwnd, WM_CLIPRDR_MESSAGE, DELAYED_RENDERING, (LPARAM)format_ids))
 						{
 							rc = CHANNEL_RC_OK;
 						}

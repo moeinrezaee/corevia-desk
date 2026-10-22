@@ -1,37 +1,66 @@
-/build
-/target
-.vscode
-.idea
+# Operating-system, editor, and local environment files.
 .DS_Store
+Thumbs.db
+.vscode/
+.idea/
 .env
+.env.*
+!.env.example
+!.env.*.example
+*.swp
+*.swo
+
+# Rust build output and generated native artifacts.
+/build/
+/target/
+**/target/
 libsciter-gtk.so
 src/ui/inline.rs
-extractor
-__pycache__
 src/version.rs
-*dmg
-*exe
-*tgz
-cert.pfx
-*.bak
-*png
-*svg
-*jpg
-sciter.dll
-**pdb
 src/bridge_generated.rs
 src/bridge_generated.io.rs
-*deb
+extractor
 rustdesk
+libsciter.dylib
+sciter.dll
+*.pdb
+*.bak
 *.cache
+*.log
+
+# Local credentials and signing material.
+*.pfx
+*.p12
+*.cer
+
+# Release packages and installer output; source artwork is intentionally not ignored.
+*.dmg
+*.exe
+*.msi
+*.pkg
+*.tgz
+*.deb
+*.rpm
+*.AppImage
+*.flatpak
 # appimage
 appimage/AppDir
 appimage/*.AppImage
 appimage/appimage-build
 appimage/*.xz
-# flutter
-flutter/linux/build/**
-flutter/linux/cmake-build-debug/**
+# Flutter/Dart generated state and platform build output.
+**/.dart_tool/
+**/build/
+**/cmake-build-debug/
+**/.flutter-plugins
+**/.flutter-plugins-dependencies
+**/android/.gradle/
+**/android/local.properties
+**/ios/Flutter/ephemeral/
+**/macos/Flutter/ephemeral/
+**/windows/flutter/ephemeral/
+**/linux/flutter/ephemeral/
+**/flutter_export_environment.sh
 # flatpak
 flatpak/.flatpak-builder/**
 flatpak/ccache/**
@@ -42,19 +71,61 @@ flatpak/.flatpak-builder/debian-binary
 flatpak/build/**
 flatpak/repo/**
 flatpak/*.flatpak
-# bridge file
+# Bridge-generated files.
 lib/generated_bridge.dart
 # vscode devcontainer
 .gitconfig
 .vscode-server/
-.ssh
+.ssh/
 .devcontainer/.*
 # build cache in examples
 examples/**/target/
 # ===
 vcpkg_installed
+/vcpkg/
 flutter/lib/generated_plugin_registrant.dart
-libsciter.dylib
-flutter/web/
 # libdrmtap is cloned at build time by build.py (not a submodule)
 /third_party/libdrmtap/
+
+# Nuxt view-layer assets are copied from corevia-desk-ui into this repository.
+!web/assets/
+!web/assets/**
+!web/assets/brand/
+!web/assets/brand/*.svg
+!web/assets/media/
+!web/assets/media/*.svg
+!web/assets/fonts/
+!web/assets/fonts/woff2/
+!web/assets/fonts/woff2/*.woff2
+
+# Nuxt local output and installed packages.
+web/node_modules/
+web/.nuxt/
+web/.output/
+web/dist/
+# Keep the optional local preview symlink out of version control as well.
+web/dist
+web/.vite/
+web/.cache/
+
+# Other JavaScript package-manager caches.
+**/node_modules/
+**/.pnpm-store/
+**/.yarn/
+**/.turbo/
+**/.parcel-cache/
+
+# Test, type-check, and tooling caches.
+**/coverage/
+**/.pytest_cache/
+**/__pycache__/
+**/.eslintcache
+**/.stylelintcache
+
+# Generated cross-platform release bundles.
+/release-output/
+
+# Local agent work files, remote test payloads, and temporary diagnostics.
+/.work/
+/.corevia-local/
+/cursor.png

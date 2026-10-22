@@ -1,0 +1,42 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 640 360" role="img" aria-labelledby="title desc">
+  <title id="title">Light design desktop preview</title>
+  <desc id="desc">A calm light creative workspace with artboards and a color panel.</desc>
+  <defs>
+    <linearGradient id="bg" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#f2f0fb"/>
+      <stop offset="1" stop-color="#e9f1f7"/>
+    </linearGradient>
+    <linearGradient id="canvas" x1="0" y1="0" x2="1" y2="1">
+      <stop offset="0" stop-color="#ffffff"/>
+      <stop offset="1" stop-color="#eef1f7"/>
+    </linearGradient>
+  </defs>
+  <rect width="640" height="360" rx="28" fill="url(#bg)"/>
+  <circle cx="74" cy="52" r="110" fill="#9b8bd0" opacity=".12"/>
+  <circle cx="586" cy="324" r="110" fill="#70b5cb" opacity=".13"/>
+  <rect x="24" y="24" width="592" height="312" rx="22" fill="#ffffff" opacity=".8" stroke="#c7c6dd"/>
+  <rect x="44" y="46" width="552" height="30" rx="9" fill="#e8e6f3"/>
+  <circle cx="62" cy="61" r="4" fill="#8a76bf"/>
+  <rect x="78" y="57" width="88" height="8" rx="4" fill="#9e92c7"/>
+  <rect x="188" y="57" width="70" height="8" rx="4" fill="#bdbad6"/>
+  <rect x="44" y="94" width="138" height="218" rx="14" fill="#f0eff8"/>
+  <rect x="62" y="115" width="78" height="10" rx="5" fill="#8c7bc2" opacity=".84"/>
+  <rect x="62" y="145" width="94" height="8" rx="4" fill="#b7b4ce"/>
+  <rect x="62" y="164" width="74" height="8" rx="4" fill="#cbc9dc"/>
+  <rect x="62" y="203" width="48" height="43" rx="9" fill="#d9d6ee"/>
+  <rect x="120" y="203" width="38" height="43" rx="9" fill="#c6dce7"/>
+  <rect x="62" y="263" width="96" height="8" rx="4" fill="#b7b4ce"/>
+  <rect x="202" y="94" width="394" height="218" rx="14" fill="url(#canvas)" stroke="#d6d8e6"/>
+  <rect x="226" y="114" width="188" height="116" rx="10" fill="#e6eef2"/>
+  <rect x="247" y="135" width="146" height="74" rx="8" fill="#ffffff" stroke="#d2dce2"/>
+  <circle cx="285" cy="172" r="19" fill="#8f82c5" opacity=".68"/>
+  <path d="M318 194l24-32 19 20 24-28 25 40" fill="none" stroke="#5d9db4" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+  <rect x="438" y="114" width="134" height="116" rx="10" fill="#f3f2fa" stroke="#e0ddec"/>
+  <rect x="456" y="135" width="70" height="9" rx="4.5" fill="#8d80bf"/>
+  <circle cx="466" cy="170" r="10" fill="#d98994"/>
+  <circle cx="491" cy="170" r="10" fill="#e4bb75"/>
+  <circle cx="516" cy="170" r="10" fill="#72b8a3"/>
+  <rect x="456" y="199" width="88" height="8" rx="4" fill="#c2c2d5"/>
+  <rect x="226" y="254" width="142" height="8" rx="4" fill="#b4b8c9"/>
+  <rect x="384" y="254" width="104" height="8" rx="4" fill="#c8ccd8"/>
+</svg>

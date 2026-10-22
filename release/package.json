@@ -1,0 +1,18 @@
+{
+  "name": "corevia-desk-release-tools",
+  "private": true,
+  "version": "0.1.0",
+  "type": "module",
+  "engines": {
+    "node": ">=18"
+  },
+  "scripts": {
+    "test": "node --test test/*.test.mjs",
+    "validate-scope": "node validate-active-scope.mjs",
+    "build:docker": "node build-docker-image.mjs",
+    "smoke": "node smoke-profile.mjs",
+    "publish:docker": "node publish-docker-image.mjs",
+    "publish:docker:local": "node publish-docker-image-local.mjs",
+    "verify:docker:remote": "node verify-docker-image.mjs"
+  }
+}

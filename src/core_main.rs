@@ -33,6 +33,39 @@ pub fn core_main() -> Option<Vec<String>> {
         return None;
     }
     crate::load_custom_client();
+    if std::env::args().any(|arg| arg == "--corevia-mcp-bridge") {
+        // The MCP process can also be the headless, user-side connection
+        // manager.  Without this listener an incoming passwordless session
+        // reaches the Rust server but has nowhere to ask for approval, so it
+        // remains pending forever.  Keep this on the Rust side; the Nuxt
+        // view and the MCP adapter both use the same ACL/CM implementation.
+        // The early MCP return used to skip the normal log bootstrap, which
+        // made transport/login diagnosis needlessly opaque.  The logger is
+        // initialized once; the later normal-ui path remains unchanged.
+        hbb_common::init_log(false, "mcp");
+        // A standalone MCP process on a normal desktop must not compete with
+        // the already-running WebView UI for the `_cm` endpoint.  A managed
+        // headless target explicitly opts into owning that endpoint through
+        // COREVIA_DESK_MCP_CONNECTION_MANAGER=1.
+        #[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+        if std::env::var("COREVIA_DESK_MCP_CONNECTION_MANAGER").as_deref() == Ok("1") {
+            crate::webview_cm::start();
+        }
+        crate::corevia_bridge::run_mcp_stdio();
+        return None;
+    }
+    #[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
+    {
+        // The normal native UI and the user-side `--cm` process both need a
+        // Rust connection-manager listener.  CLI/service helpers must stay
+        // headless and must not claim the `_cm` endpoint.
+        let mut command_args = std::env::args().skip(1);
+        let is_cm = command_args.any(|arg| arg == "--cm");
+        let is_normal_ui = std::env::args().nth(1).is_none();
+        if is_cm || is_normal_ui {
+            crate::webview_cm::start();
+        }
+    }
     #[cfg(windows)]
     if !crate::platform::windows::bootstrap() {
         // return None to terminate the process
@@ -414,7 +447,14 @@ pub fn core_main() -> Option<Vec<String>> {
             #[cfg(target_os = "macos")]
             {
                 let handler = std::thread::spawn(move || crate::start_server(true, false));
-                crate::tray::start_tray();
+                if std::env::var("COREVIA_DESK_HEADLESS_SERVER").as_deref() == Ok("1") {
+                    // Controlled runner/acceptance mode: a locked macOS host has no
+                    // interactive Tray session, but the native server and its
+                    // ID/Relay registration can still be exercised safely.
+                    log::info!("Corevia headless server mode: skipping macOS tray");
+                } else {
+                    crate::tray::start_tray();
+                }
                 // prevent server exit when encountering errors from tray
                 hbb_common::allow_err!(handler.join());
             }

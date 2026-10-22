@@ -1,4 +1,4 @@
-# flutter_hbb
+# Corevia Desk Flutter client
 
 A new Flutter project.
 

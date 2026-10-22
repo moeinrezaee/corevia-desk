@@ -176,6 +176,37 @@ pub fn get_option<T: AsRef<str>>(key: T) -> String {
     }
 }
 
+pub fn get_option_from(surface: crate::corevia_acl::Surface, key: String) -> String {
+    if crate::corevia_acl::authorize_setting(surface, &key, false).is_err() {
+        return String::new();
+    }
+    get_option(key)
+}
+
+pub fn get_options_from(surface: crate::corevia_acl::Surface) -> String {
+    if crate::corevia_acl::authorize(crate::corevia_acl::AuthorizationRequest::new(
+        surface,
+        crate::corevia_acl::Capability::ReadSettings,
+    ))
+    .is_err()
+    {
+        return "{}".to_owned();
+    }
+
+    let options = get_options();
+    if crate::corevia_acl::ProductProfile::current()
+        == crate::corevia_acl::ProductProfile::FullDesk
+    {
+        return options;
+    }
+
+    let Ok(mut options) = serde_json::from_str::<HashMap<String, String>>(&options) else {
+        return "{}".to_owned();
+    };
+    options.retain(|key, _| crate::corevia_acl::is_customer_support_setting(key));
+    serde_json::to_string(&options).unwrap_or_else(|_| "{}".to_owned())
+}
+
 #[inline]
 pub fn use_texture_render() -> bool {
     #[cfg(target_os = "android")]
@@ -227,6 +258,13 @@ pub fn get_local_option(key: String) -> String {
     crate::get_local_option(&key)
 }
 
+pub fn get_local_option_from(surface: crate::corevia_acl::Surface, key: String) -> String {
+    if crate::corevia_acl::authorize_setting(surface, &key, false).is_err() {
+        return String::new();
+    }
+    get_local_option(key)
+}
+
 #[inline]
 #[cfg(feature = "flutter")]
 pub fn get_hard_option(key: String) -> String {
@@ -246,6 +284,18 @@ pub fn get_builtin_option(key: &str) -> String {
 #[inline]
 pub fn set_local_option(key: String, value: String) {
     LocalConfig::set_option(key.clone(), value);
+}
+
+pub fn set_local_option_from(
+    surface: crate::corevia_acl::Surface,
+    key: String,
+    value: String,
+) -> bool {
+    if crate::corevia_acl::authorize_local_ui(surface, true).is_err() {
+        return false;
+    }
+    set_local_option(key, value);
+    true
 }
 
 /// Resolve relative avatar path (e.g. "/avatar/xxx") to absolute URL
@@ -418,6 +468,26 @@ pub fn set_options(m: HashMap<String, String>) {
     Config::set_options(m);
 }
 
+pub fn set_options_from(
+    surface: crate::corevia_acl::Surface,
+    mut options: HashMap<String, String>,
+) -> bool {
+    options.retain(|key, _| {
+        crate::corevia_acl::authorize_setting_with_approval(
+            surface,
+            key,
+            true,
+            "ui-options-approval",
+        )
+        .is_ok()
+    });
+    if options.is_empty() {
+        return false;
+    }
+    set_options(options);
+    true
+}
+
 #[inline]
 pub fn set_option(key: String, value: String) {
     if &key == "stop-service" {
@@ -462,6 +532,25 @@ pub fn set_option(key: String, value: String) {
         let _nat = crate::CheckTestNatType::new();
         Config::set_option(key, value);
     }
+}
+
+pub fn set_option_from(
+    surface: crate::corevia_acl::Surface,
+    key: String,
+    value: String,
+) -> bool {
+    if crate::corevia_acl::authorize_setting_with_approval(
+        surface,
+        &key,
+        true,
+        "ui-option-approval",
+    )
+    .is_err()
+    {
+        return false;
+    }
+    set_option(key, value);
+    true
 }
 
 #[inline]

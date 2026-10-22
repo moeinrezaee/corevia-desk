@@ -1608,8 +1608,9 @@ class RustdeskImpl {
   }
 
   bool isCustomClient({dynamic hint}) {
-    // is_custom_client() checks if app name is not "RustDesk"
-    return mainGetAppNameSync(hint: hint) != "RustDesk";
+    // is_custom_client() treats Corevia Desk as the default full-capability profile.
+    final appName = mainGetAppNameSync(hint: hint);
+    return appName != "RustDesk" && appName != "Corevia Desk";
   }
 
   bool isDisableSettings({dynamic hint}) {
