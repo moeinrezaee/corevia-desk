@@ -129,3 +129,6 @@ web/.cache/
 /.work/
 /.corevia-local/
 /cursor.png
+
+# Local git worktrees
+.worktrees/

@@ -799,11 +799,6 @@
    "op": "asset",
    "path": "src/platform/privileges_scripts/uninstall.scpt",
    "asset": "assets/src/platform/privileges_scripts/uninstall.scpt"
-  },
-  {
-   "op": "asset",
-   "path": "src/platform/privileges_scripts/update.scpt",
-   "asset": "assets/src/platform/privileges_scripts/update.scpt"
   }
  ]
 }

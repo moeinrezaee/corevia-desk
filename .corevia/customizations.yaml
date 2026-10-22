@@ -83,7 +83,6 @@ mechanical:
   - src/platform/privileges_scripts/daemon.plist
   - src/platform/privileges_scripts/install.scpt
   - src/platform/privileges_scripts/uninstall.scpt
-  - src/platform/privileges_scripts/update.scpt
   - src/server/dbus.rs
   - src/whiteboard/linux.rs
   - src/whiteboard/macos.rs

@@ -17,7 +17,11 @@ fn main() {
 }
 
 #[cfg(not(any(target_os = "android", target_os = "ios", feature = "flutter")))]
-fn main() {
+fn main() -> std::process::ExitCode {
+    #[cfg(windows)]
+    if let Some(exit_code) = platform::handle_service_control() {
+        return exit_code;
+    }
     #[cfg(all(windows, not(feature = "inline")))]
     unsafe {
         winapi::um::shellscalingapi::SetProcessDpiAwareness(2);
@@ -26,18 +30,32 @@ fn main() {
     let instance_guard = if crate::single_instance::is_launcher_invocation() {
         match crate::single_instance::acquire() {
             Ok(crate::single_instance::AcquireResult::Primary(guard)) => Some(guard),
-            Ok(crate::single_instance::AcquireResult::AlreadyRunning) => return,
+            Ok(crate::single_instance::AcquireResult::AlreadyRunning) => {
+                return std::process::ExitCode::SUCCESS
+            }
             Err(error) => {
                 eprintln!("Could not enforce single-instance launch: {error}");
-                return;
+                return std::process::ExitCode::FAILURE;
             }
         }
     } else {
         None
     };
 
-    if let Some(args) = crate::core_main::core_main().as_mut() {
-        webview::start(args, instance_guard);
-    }
+    // Preserve command failures, notably verified macOS offline update failures,
+    // as a non-zero process exit status for CLI callers.
+    let exit_code = match crate::core_main::core_main() {
+        Some(crate::core_main::CoreMainAction::StartUi(mut args)) => {
+            webview::start(&mut args, instance_guard);
+            std::process::ExitCode::SUCCESS
+        }
+        Some(crate::core_main::CoreMainAction::ExitFailure(err)) => {
+            eprintln!("Command failed: {err}");
+            hbb_common::log::error!("Command failed: {err}");
+            std::process::ExitCode::FAILURE
+        }
+        None => std::process::ExitCode::SUCCESS,
+    };
     common::global_clean();
+    exit_code
 }

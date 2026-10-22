@@ -7,6 +7,7 @@ fn main() {}
 fn main() {
     crate::common::initialize_app_identity();
     let args: Vec<String> = std::env::args().collect();
+    crate::common::load_custom_client();
     if args.len() > 1 && args[1] == "--write-plists" {
         if let Err(e) = librustdesk::platform::write_plists() {
             eprintln!("Failed to write plists: {}", e);
@@ -14,7 +15,6 @@ fn main() {
         }
         std::process::exit(0);
     }
-    crate::common::load_custom_client();
     hbb_common::init_log(false, "service");
     crate::start_os_service();
 }
