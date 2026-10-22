@@ -46,6 +46,9 @@ customizations:
   - docs/standards/**
   - docs/roadmaps/**
   - docs/operations/**
+  - docs/AGENTS.md
+  - docs/INDEX.md
+  - docs/INDEX.fa.md
   - docs/incidents/**
   - docs/handoff/**
   - docs/decisions/**
