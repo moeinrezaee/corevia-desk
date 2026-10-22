@@ -1,13 +1,13 @@
 ---
-kind: service
+kind: fork
 repo:
-  type: service
+  type: fork
   slug: desk
   name: Corevia Desk
   local:
     path: corevia-desk
   gitlab:
-    group_path: corevia
+    group_path: corevia/fork
     path: corevia-desk
     name: Corevia Desk
   visibility: private
@@ -16,12 +16,14 @@ repo:
     develop: develop
     protected:
       - main
-      - develop
+      - upstream
 source:
-  mode: existing-repo
-  source_of_truth: corevia-desk
+  mode: source-fork
+  source_of_truth: corevia/fork/corevia-desk
+  fork_contract: .corevia/fork.yaml
+  upstream: https://github.com/rustdesk/rustdesk.git
 automation:
-  bridge_usecase: service-repo.provision
+  bridge_usecase: source-fork
   apply_policy: bridge-only
 verification:
   level: full
