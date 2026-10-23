@@ -1,0 +1,220 @@
+# Fork pipeline, generated from the legacy Corevia pipeline by `connectcore source-fork ci-author`.
+# Internal addresses and registries are pipeline variables held in the Corevia GitLab project (declared in .corevia/ci.yaml).
+stages:
+  - verify
+  - build
+  - package
+  - publish
+
+variables:
+  # The active desktop stack is Rust + Nuxt inside the native WebView host.
+  # Legacy mobile bindings are deliberately outside this pipeline.
+  COREVIA_DESK_UI: rust-webview
+  NPM_CONFIG_USERCONFIG: "$CI_PROJECT_DIR/.npmrc.ci"
+  # The native Rust workspace depends on the declared hbb_common submodule.
+  # Fetch it recursively in every GitLab checkout so Linux and native release
+  # jobs build the exact source commit recorded by the superproject.
+  GIT_SUBMODULE_STRATEGY: recursive
+  GIT_SUBMODULE_DEPTH: 1
+  COREVIA_DOCKER_REPOSITORY: corevia-desk/full-desk-linux
+  # The governed Linux runner daemon requires Docker API 1.44 or newer.
+  # Debian bookworm's docker.io package is an older client, but supports the
+  # compatible API override used by the existing Corevia CI contract.
+  DOCKER_API_VERSION: "1.44"
+  # Native runners occasionally see a slow crates.io edge. Keep Cargo from
+  # failing a release on a transient low-throughput response and avoid HTTP/2
+  # multiplexing on the public crate download path.
+  CARGO_NET_RETRY: "10"
+  CARGO_HTTP_TIMEOUT: "120"
+  CARGO_HTTP_MULTIPLEXING: "false"
+
+workflow:
+  rules:
+    - if: '$CI_COMMIT_TAG'
+    - if: '$CI_COMMIT_BRANCH'
+
+verify:contracts:
+  stage: verify
+  image: "$COREVIA_NODE_IMAGE"
+  script:
+    - node scripts/ci/configure-nexus-npm.mjs
+    - node scripts/ci/sync-nexus-npm.mjs
+    - npm --prefix web ci
+    - npm --prefix web run lint:atomic
+    - npm --prefix web run lint:profiles
+    - npm --prefix web run build
+    - COREVIA_DESK_PROFILE=customer-support npm --prefix web run build
+    - npm --prefix web run generate
+    - COREVIA_DESK_PROFILE=customer-support npm --prefix web run generate
+    - npm --prefix mcp test
+    - npm --prefix release test
+    - npm --prefix release run validate-scope
+    - git diff --check
+
+.desktop-build:
+  stage: build
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  script:
+    - node scripts/ci/configure-nexus-npm.mjs
+    - npm --prefix release run validate-scope
+    - node release/build-profile.mjs
+    - node release/smoke-profile.mjs
+    - node release/archive-profile.mjs
+    - node release/create-manifest.mjs
+    - node release/validate-manifest.mjs
+  artifacts:
+    name: "corevia-desk-$COREVIA_DESK_PROFILE-$COREVIA_DESK_PLATFORM-$COREVIA_DESK_ARCH"
+    paths:
+      - release-output/
+    expire_in: 30 days
+
+build:desktop:macos:
+  extends: .desktop-build
+  tags:
+    - macos
+  before_script:
+    # The native macOS runner keeps the project vcpkg tree on the large
+    # Personal volume. Source-controlled verification exports it before Rust
+    # build.rs can fall back to an unavailable Homebrew libyuv formula.
+    - export COREVIA_MACOS_VCPKG_ROOT="$COREVIA_MACOS_VCPKG_DIR"
+    - export COREVIA_MACOS_VCPKG_INSTALLED_ROOT="$COREVIA_MACOS_VCPKG_DIR/installed"
+    - export COREVIA_MACOS_VCPKG_TRIPLET="arm64-osx"
+    - export COREVIA_MACOS_VCPKG_BASELINE="9e593bb18ea69cc5095e012465dcd675a822ed0d"
+    - . scripts/ci/verify-macos-native-environment.sh
+  parallel:
+    matrix:
+      - COREVIA_DESK_PROFILE: [customer-support, full-desk]
+        COREVIA_DESK_PLATFORM: macos
+        COREVIA_DESK_ARCH: arm64
+
+build:desktop:windows:
+  extends: .desktop-build
+  tags:
+    - windows
+  before_script:
+    # The Windows runner is persistent. This source-controlled gate verifies
+    # its one-time toolchain and exports the exact bindgen/vcpkg environment
+    # for the native Rust build; it never installs or deletes user software.
+    - .\scripts\ci\verify-windows-native-environment.ps1
+  parallel:
+    matrix:
+      - COREVIA_DESK_PROFILE: [customer-support, full-desk]
+        COREVIA_DESK_PLATFORM: windows
+        COREVIA_DESK_ARCH: x86_64
+
+.linux-build-environment:
+  image: "$COREVIA_LINUX_BUILD_IMAGE"
+  tags:
+    # The existing platform Linux Docker runner is registered with this tag.
+    - docker
+  before_script:
+    # The runner has no public TCP/80 route. Use Debian's approved HTTPS
+    # endpoints through the platform egress policy, and keep the package
+    # source isolated from the base image's public repositories.
+    - rm -f /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list
+    - printf '%s\n' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian trixie main contrib non-free non-free-firmware' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian trixie-updates main contrib non-free non-free-firmware' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian-security trixie-security main' > /etc/apt/sources.list
+    # debian:trixie-slim intentionally omits a CA bundle. Bootstrap only the
+    # signed Debian ca-certificates package, then require normal TLS checks for
+    # every subsequent package request.
+    - apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 -o Acquire::https::Verify-Peer=false -o Acquire::https::Verify-Host=false update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 -o Acquire::https::Verify-Peer=false -o Acquire::https::Verify-Host=false install --yes --no-install-recommends ca-certificates
+    - apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 install --yes --no-install-recommends build-essential ca-certificates cargo clang cmake gcc g++ git libaom-dev libasound2-dev libayatana-appindicator3-dev libclang-dev libdbus-1-dev libdrm-dev libgstreamer1.0-dev libgstreamer-plugins-base1.0-dev libgtk-3-dev libopus-dev libpulse-dev libssl-dev libunwind-dev libva-dev libvdpau-dev libvpx-dev libwebkit2gtk-4.1-dev libwayland-dev libx11-dev libxcb-randr0-dev libxcb-shape0-dev libxcb-xfixes0-dev libxdo-dev libxfixes-dev libyuv-dev librsvg2-dev make nasm nodejs npm pkg-config rustc yasm
+    # Cargo fetches several large git dependencies. Keep the runner's Git
+    # transport on HTTP/1.1 to avoid intermittent HTTP/2 early-EOF failures.
+    - git config --global http.version HTTP/1.1
+    - git config --global http.maxRequests 1
+    - git config --global --get http.version
+    - git config --global --get http.maxrequests
+    - node --version
+    - npm --version
+    - rustc --version
+    - cargo --version
+
+build:desktop:linux:
+  extends: [.desktop-build, .linux-build-environment]
+  image: "$COREVIA_LINUX_BUILD_IMAGE"
+  tags:
+    - docker
+  variables:
+    COREVIA_DESK_PROFILE: full-desk
+    COREVIA_DESK_PLATFORM: linux
+    COREVIA_DESK_ARCH: x86_64
+
+build:docker:full-desk:linux:
+  stage: package
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  image: "$COREVIA_NODE_IMAGE"
+  needs:
+    - job: build:desktop:linux
+      artifacts: true
+  tags:
+    - docker
+  variables:
+    COREVIA_DESK_PROFILE: full-desk
+    COREVIA_DESK_PLATFORM: linux
+    COREVIA_DESK_ARCH: x86_64
+    # Push from the same Docker daemon that built the image. The registry
+    # publish must not transfer a large docker save archive through GitLab.
+    COREVIA_DOCKER_EXPORT_ARCHIVE: "false"
+  before_script:
+    - rm -f /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list
+    - printf '%s\n' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian-security bookworm-security main' > /etc/apt/sources.list
+    - apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 install --yes --no-install-recommends ca-certificates docker.io
+    - node --version
+    - npm --version
+  script:
+    - command -v docker >/dev/null 2>&1 || (echo "Docker is required on the Linux release runner." >&2; exit 1)
+    - test -n "$NEXUS_USERNAME" || (echo "NEXUS_USERNAME is required for the private Nexus registry." >&2; exit 1)
+    - test -n "$NEXUS_PASSWORD" || (echo "NEXUS_PASSWORD is required for the private Nexus registry." >&2; exit 1)
+    - test -n "$COREVIA_DOCKER_REGISTRY" || (echo "COREVIA_DOCKER_REGISTRY is required." >&2; exit 1)
+    - test "$COREVIA_DOCKER_REGISTRY" != "docker.io" || (echo "Public Docker Hub is not an allowed release registry." >&2; exit 1)
+    - docker info
+    - npm --prefix release run validate-scope
+    - npm --prefix release run build:docker
+    - npm --prefix release run publish:docker:local
+  artifacts:
+    name: "corevia-desk-full-desk-linux-docker-$CI_COMMIT_TAG"
+    paths:
+      - release-output/full-desk/linux/x86_64/docker-image.json
+      - release-output/full-desk/linux/x86_64/docker-publish.json
+    expire_in: 30 days
+
+publish:nexus:docker:
+  stage: publish
+  image: "$COREVIA_NODE_IMAGE"
+  rules:
+    - if: '$CI_COMMIT_TAG'
+  tags:
+    - docker
+  dependencies:
+    - build:docker:full-desk:linux
+  before_script:
+    - rm -f /etc/apt/sources.list.d/*.sources /etc/apt/sources.list.d/*.list
+    - printf '%s\n' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm main contrib non-free non-free-firmware' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian bookworm-updates main contrib non-free non-free-firmware' 'deb [signed-by=/usr/share/keyrings/debian-archive-keyring.gpg] https://deb.debian.org/debian-security bookworm-security main' > /etc/apt/sources.list
+    - apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 update -qq
+    - DEBIAN_FRONTEND=noninteractive apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 install --yes --no-install-recommends ca-certificates curl nodejs npm
+  script:
+    - test -n "$NEXUS_USERNAME" || (echo "NEXUS_USERNAME is required for the private Nexus registry." >&2; exit 1)
+    - test -n "$NEXUS_PASSWORD" || (echo "NEXUS_PASSWORD is required for the private Nexus registry." >&2; exit 1)
+    - test -n "$COREVIA_DOCKER_REGISTRY" || (echo "COREVIA_DOCKER_REGISTRY is required." >&2; exit 1)
+    - test "$COREVIA_DOCKER_REGISTRY" != "docker.io" || (echo "Public Docker Hub is not an allowed release registry." >&2; exit 1)
+    - node release/verify-docker-image.mjs
+
+publish:nexus:
+  stage: publish
+  image: "$COREVIA_NODE_IMAGE"
+  before_script:
+    - apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 update -qq
+    - apt-get -o Acquire::ForceIPv4=true -o Acquire::Retries=3 install --yes --no-install-recommends curl ca-certificates
+  script:
+    - |
+      set -euo pipefail
+      while IFS= read -r -d '' manifest; do
+        node release/publish-nexus.mjs "$manifest"
+      done < <(find release-output -type f -name '*.manifest.json' -print0)
+  rules:
+    - if: '$CI_COMMIT_TAG'

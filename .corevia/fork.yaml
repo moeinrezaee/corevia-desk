@@ -64,6 +64,10 @@ customizations:
   - src/webview_session.rs
   - res/corevia-icon.svg
   - res/corevia-tray.svg
+  - ".gitlab-ci.yml"
+  - docker/full-desk/**
+  - release/build-docker-image.mjs
+  - release/test/docker-verify.test.mjs
   surgical_max_files: 40
   commit_prefix: "[corevia]"
   untouchable_paths:

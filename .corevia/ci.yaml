@@ -1,0 +1,36 @@
+# Variables the fork pipeline reads. Their values live in the Corevia GitLab project, never in this repository.
+generated_by: connectcore source-fork ci-author
+source: ".gitlab-ci.yml"
+required_variables:
+- name: NPM_CONFIG_REGISTRY
+  purpose: npm registry the runners use for the web build and release tools.
+  sensitive: false
+- name: COREVIA_NEXUS_RAW_URL
+  purpose: Base address of the artifact store that receives release files.
+  sensitive: false
+- name: COREVIA_NODE_IMAGE
+  purpose: Container image for Node based jobs (verification, packaging, publishing).
+  sensitive: false
+- name: COREVIA_LINUX_BUILD_IMAGE
+  purpose: Container image for the Linux native build.
+  sensitive: false
+- name: COREVIA_DOCKER_BASE_IMAGE
+  purpose: Base image of the Full Desk container image.
+  sensitive: false
+- name: COREVIA_DOCKER_BASE_REGISTRY
+  purpose: Registry host the base image must come from; the container build refuses
+    other registries.
+  sensitive: false
+- name: COREVIA_DOCKER_REGISTRY
+  purpose: Registry host and port that receives the Full Desk container image.
+  sensitive: false
+- name: COREVIA_MACOS_VCPKG_DIR
+  purpose: Directory of the vcpkg tree on the macOS runner.
+  sensitive: false
+- name: NEXUS_USERNAME
+  purpose: Account that publishes release files and container images.
+  sensitive: false
+- name: NEXUS_PASSWORD
+  purpose: Password of that account.
+  sensitive: true
+dropped_jobs: []

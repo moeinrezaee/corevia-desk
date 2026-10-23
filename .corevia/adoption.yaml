@@ -17,15 +17,22 @@ relocated:
     hosts.
   destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
 - glob: ".gitlab-ci.yml"
-  reason: Internal CI pipeline bound to the Corevia Nexus and runners; the fork pipeline
-    is re-authored with Bridge-held variables (follow-up).
-  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+  reason: Re-authored for the public fork by ci-author - internal registries and addresses
+    became pipeline variables declared in .corevia/ci.yaml.
+  destination: re-authored in the fork (.gitlab-ci.yml, variables in .corevia/ci.yaml);
+    original kept in the legacy archive
 - glob: docker/full-desk/**
-  reason: Internal Docker build bound to the Corevia registry hostname.
-  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+  reason: Re-authored for the public fork by ci-author - the base image comes from
+    a pipeline variable instead of the internal registry hostname.
+  destination: re-authored in the fork (docker/full-desk); original kept in the legacy
+    archive
 - glob: release/build-docker-image.mjs
-  reason: Release script bound to the internal Corevia registry hostname.
-  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+  reason: Re-authored for the public fork by ci-author - the allowed base registry
+    comes from a pipeline variable instead of a hostname.
+  destination: re-authored in the fork (release/build-docker-image.mjs); original
+    kept in the legacy archive
 - glob: release/test/docker-verify.test.mjs
-  reason: Test of the internal registry release script.
-  destination: legacy archive (GitLab corevia/corevia-desk, tag legacy/pre-fork-snapshot)
+  reason: Re-authored for the public fork by ci-author - the test fixture uses a neutral
+    registry name.
+  destination: re-authored in the fork (release/test/docker-verify.test.mjs); original
+    kept in the legacy archive
