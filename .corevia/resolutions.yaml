@@ -1,0 +1,122 @@
+# How every merge conflict was resolved. Each entry needs a real reason and, once a person has read the
+# resolution, reviewed_by and reviewed_on. Reviews are made by people, never by this tool.
+resolutions:
+- merge: 3c14107d
+  path: ".gitignore"
+  decision: combined
+  reason: Upstream's new ignore rules kept as they are; Corevia's ignore entries for
+    the WebView host, web build output and release output added after them.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: AGENTS.md
+  decision: combined
+  reason: Upstream's agent guidance kept; the Corevia fork rules section kept after
+    it so both sets of instructions apply.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: Cargo.lock
+  decision: rewritten
+  reason: Union of both dependency sets; a lockfile cannot be merged by hand. build-verify
+    refreshes it with cargo and checks it with --locked.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: build.rs
+  decision: combined
+  reason: Upstream's build script kept; Corevia's COREVIA_DESK_VERSION stamping and
+    cross-compile archiver variables re-applied on top.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/client.rs
+  decision: kept-upstream
+  reason: Upstream's rewritten secure key exchange taken as is; only Corevia's diagnostic
+    debug log lines were re-added around it (no behaviour change).
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/flutter_ffi.rs
+  decision: combined
+  reason: Upstream's new FFI functions kept; Corevia's authorization guards (corevia_acl)
+    and application identity initialization re-applied to every command that needs
+    them.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/ipc.rs
+  decision: combined
+  reason: Upstream's new IPC messages kept; Corevia's serde(default) on fields (mixed-version
+    safety) and its decode-failure logging kept.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/main.rs
+  decision: combined
+  reason: Upstream's ExitCode based start flow kept; Corevia's single-instance guard
+    and the WebView launcher (webview::start) kept for the desktop start.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/platform/macos.rs
+  decision: combined
+  reason: Upstream's update and service changes kept; Corevia's bundle name and identifier
+    replacements kept so the update flow targets the Corevia application.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/platform/privileges_scripts/update.scpt
+  decision: kept-upstream
+  reason: Compiled AppleScript (binary) taken from upstream; Corevia naming is applied
+    by the replacement strings in macos.rs, not by editing the binary.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/platform/windows.rs
+  decision: combined
+  reason: Upstream's Windows changes kept; Corevia's stable service identifier constants
+    (WINDOWS_SERVICE_NAME per product profile) used for the service dispatcher and
+    control handler.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/server.rs
+  decision: kept-upstream
+  reason: Upstream's server handshake taken as is; only Corevia's three diagnostic
+    debug log lines re-added.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
+- merge: 3c14107d
+  path: src/server/connection.rs
+  decision: combined
+  reason: Upstream's connection changes kept; Corevia's customer-support permission
+    gating (profile_allows_connection_permission) and diagnostic logging re-applied.
+  drafted_by: ai-assisted (Claude Code)
+  drafted_on: '2026-10-23'
+  reviewed_by: ''
+  reviewed_on: ''
