@@ -85,11 +85,15 @@ publication:
     repo: moeinrezaee/corevia-desk
     refs:
     - release
+    - mirror
     - tags
     intake:
       enabled: true
       target_branch: develop
       require_license_agreement: true
+    default_branch: release
+    retire_branches:
+    - master
   leak_scan:
     allow:
     - path: src/common.rs
