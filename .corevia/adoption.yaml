@@ -36,3 +36,7 @@ relocated:
     registry name.
   destination: re-authored in the fork (release/test/docker-verify.test.mjs); original
     kept in the legacy archive
+rewritten:
+- path: ".corevia/repo.yaml"
+  reason: The legacy repository identity file described the old GitLab project; the
+    fork rewrote it to describe corevia/fork/corevia-desk (kind fork).
